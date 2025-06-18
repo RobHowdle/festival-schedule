@@ -1,6 +1,13 @@
 <template>
-    <div>
-        <h1>Download XXIII Festival Schedule</h1>
-        <h3>Coming Soon</h3>
-    </div>
+    <MaintenanceMode />
 </template>
+
+<style scoped>
+.download-glow {
+    filter: drop-shadow(0 0 40px #ff9900);
+}
+</style>
+
+<script setup>
+import MaintenanceMode from "./MaintenanceMode.vue";
+</script>
