@@ -1,13 +1,13 @@
 <template>
-    <MaintenanceMode />
+    <MaintenanceMode v-if="maintenanceMode" />
+    <router-view v-else />
 </template>
 
-<style scoped>
-.download-glow {
-    filter: drop-shadow(0 0 40px #ff9900);
-}
-</style>
-
 <script setup>
+import { computed } from "vue";
 import MaintenanceMode from "./MaintenanceMode.vue";
+
+const maintenanceMode = computed(
+    () => import.meta.env.VITE_MAINTENANCE_MODE === "true"
+);
 </script>
