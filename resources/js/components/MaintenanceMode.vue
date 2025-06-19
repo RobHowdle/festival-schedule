@@ -111,9 +111,7 @@
             <button
                 id="hero-pause-play"
                 class="playing"
-                aria-label="Pause background video"
             >
-                <span class="text visually-hidden">Pause background video</span>
                 <span class="icon play"></span>
                 <span class="icon pause"></span>
             </button>
