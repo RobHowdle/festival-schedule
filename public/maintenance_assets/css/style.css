@@ -134,84 +134,20 @@ html {
   touch-action: manipulation;
 }
 @font-face {
-  font-family: "MuseoSansCond-100";
-  src: url("../fonts/34179B_1_0.eot");
-  src: url("../fonts/34179B_1_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_1_0.woff2") format("woff2"),
-    url("../fonts/34179B_1_0.woff") format("woff"),
-    url("../fonts/34179B_1_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-100Italic";
-  src: url("../fonts/34179B_9_0.eot");
-  src: url("../fonts/34179B_9_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_9_0.woff2") format("woff2"),
-    url("../fonts/34179B_9_0.woff") format("woff"),
-    url("../fonts/34179B_9_0.ttf") format("truetype");
-}
-@font-face {
   font-family: "MuseoSansCond-300";
-  src: url("../fonts/34179B_0_0.eot");
-  src: url("../fonts/34179B_0_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_0_0.woff2") format("woff2"),
-    url("../fonts/34179B_0_0.woff") format("woff"),
-    url("../fonts/34179B_0_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-300Italic";
-  src: url("../fonts/34179B_5_0.eot");
-  src: url("../fonts/34179B_5_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_5_0.woff2") format("woff2"),
-    url("../fonts/34179B_5_0.woff") format("woff"),
-    url("../fonts/34179B_5_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-500";
-  src: url("../fonts/34179B_3_0.eot");
-  src: url("../fonts/34179B_3_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_3_0.woff2") format("woff2"),
-    url("../fonts/34179B_3_0.woff") format("woff"),
-    url("../fonts/34179B_3_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-500Italic";
-  src: url("../fonts/34179B_2_0.eot");
-  src: url("../fonts/34179B_2_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_2_0.woff2") format("woff2"),
-    url("../fonts/34179B_2_0.woff") format("woff"),
-    url("../fonts/34179B_2_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-700";
-  src: url("../fonts/34179B_6_0.eot");
-  src: url("../fonts/34179B_6_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_6_0.woff2") format("woff2"),
-    url("../fonts/34179B_6_0.woff") format("woff"),
-    url("../fonts/34179B_6_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-700Italic";
-  src: url("../fonts/34179B_8_0.eot");
-  src: url("../fonts/34179B_8_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_8_0.woff2") format("woff2"),
-    url("../fonts/34179B_8_0.woff") format("woff"),
-    url("../fonts/34179B_8_0.ttf") format("truetype");
+  src: url("../fonts/MuseoSansCond-300.eot");
+  src: url("../fonts/MuseoSansCond-300_0d41d.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/MuseoSansCond-300.woff2") format("woff2"),
+    url("../fonts/MuseoSansCond-300.woff") format("woff"),
+    url("../fonts/MuseoSansCond-300.ttf") format("truetype");
 }
 @font-face {
   font-family: "MuseoSansCond-900";
-  src: url("../fonts/34179B_4_0.eot");
-  src: url("../fonts/34179B_4_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_4_0.woff2") format("woff2"),
-    url("../fonts/34179B_4_0.woff") format("woff"),
-    url("../fonts/34179B_4_0.ttf") format("truetype");
-}
-@font-face {
-  font-family: "MuseoSansCond-900Italic";
-  src: url("../fonts/34179B_7_0.eot");
-  src: url("../fonts/34179B_7_0d41d.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/34179B_7_0.woff2") format("woff2"),
-    url("../fonts/34179B_7_0.woff") format("woff"),
-    url("../fonts/34179B_7_0.ttf") format("truetype");
+  src: url("../fonts/MuseoSansCond-900.eot");
+  src: url("../fonts/MuseoSansCond-900_0d41d.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/MuseoSansCond-900.woff2") format("woff2"),
+    url("../fonts/MuseoSansCond-900.woff") format("woff"),
+    url("../fonts/MuseoSansCond-900.ttf") format("truetype");
 }
 @-webkit-keyframes slideUp {
   0% {
