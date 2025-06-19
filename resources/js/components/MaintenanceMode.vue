@@ -2,6 +2,11 @@
     <div>
         <div class="hero-panel" id="page-content">
             <div class="hero-detail"></div>
+
+            <div class="countdown-overlay">
+                <Countdown />
+            </div>
+
             <div class="title-wrap">
                 <!-- Main splash screen -->
                 <div
@@ -147,8 +152,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { router } from "@inertiajs/vue3";
+import Countdown from "@/components/Countdown.vue";
 
 import "../../css/maintenance-style.css";
 import "../../css/maintenance-print.css";
@@ -163,7 +169,12 @@ const loginError = ref("");
 
 // Methods
 const toggleLoginForm = () => {
+    console.log(
+        "toggleLoginForm called, current showLoginForm:",
+        showLoginForm.value
+    );
     showLoginForm.value = !showLoginForm.value;
+    console.log("toggleLoginForm new showLoginForm:", showLoginForm.value);
     loginError.value = "";
     // Clear form when toggling
     if (!showLoginForm.value) {
@@ -178,6 +189,12 @@ const backToSplash = () => {
     // Clear form data
     loginForm.value.email = "";
     loginForm.value.password = "";
+
+    // Force a DOM update
+    nextTick(() => {
+        const splashElement = document.getElementById("maintenance-splash");
+        const loginElement = document.getElementById("maintenance-login-form");
+    });
 };
 
 const handleLogin = async () => {
@@ -213,11 +230,54 @@ const handleLogin = async () => {
     }
 };
 
-document.documentElement.className = document.documentElement.className.replace(
-    "no-js",
-    "js"
-);
+// Initialize dog scroll functionality
+const initializeDogScroll = () => {
+    let dogVisible = false;
+    const dogTrigger = document.getElementById("dl-dog-trigger");
 
+    if (!dogTrigger) {
+        console.warn("Dog trigger element not found");
+        return;
+    }
+
+    const showDog = () => {
+        if (!dogVisible) {
+            dogTrigger.classList.add("visible");
+            dogVisible = true;
+        }
+    };
+
+    const hideDog = () => {
+        if (dogVisible) {
+            dogTrigger.classList.remove("visible");
+            dogVisible = false;
+        }
+    };
+
+    const handleScroll = () => {
+        const scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // Show dog when user scrolls near the bottom (within 100px)
+        if (scrollTop + windowHeight >= documentHeight - 100) {
+            showDog();
+        } else {
+            hideDog();
+        }
+    };
+
+    // Add scroll event listener
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Initial check in case user is already at bottom
+    handleScroll();
+
+    console.log("Dog scroll functionality initialized");
+};
+
+// Browser detection function
 function sniff() {
     (this.version = "1.3"),
         this.browserType,
@@ -274,6 +334,12 @@ function sniff() {
         (this.browserVersionExtended = f);
 }
 
+// Initialize browser detection
+document.documentElement.className = document.documentElement.className.replace(
+    "no-js",
+    "js"
+);
+
 var sniffInstance = new sniff();
 "undefined" != typeof document.documentElement.classList
     ? (document.documentElement.classList.add(sniffInstance.browserType),
@@ -294,17 +360,83 @@ var sniffInstance = new sniff();
               " " + sniffInstance.mobile.toString().toLowerCase()));
 
 onMounted(async () => {
-    // Load external JavaScript files from resources
+    await nextTick();
+
     try {
-        // Import jQuery
+        // Try to load external scripts
         await import("../../js/jquery.min.js");
-
-        // Import main scripts
         await import("../../js/maintenance-script.js");
-
-        console.log("All maintenance scripts loaded successfully");
+        console.log("External maintenance scripts loaded successfully");
     } catch (error) {
-        console.warn("Error loading maintenance scripts:", error);
+        console.warn("Error loading external maintenance scripts:", error);
+        console.log("Falling back to built-in functionality");
     }
+
+    // Always initialize our own dog scroll functionality as fallback
+    setTimeout(() => {
+        initializeDogScroll();
+    }, 500); // Small delay to ensure DOM is ready
 });
 </script>
+
+<style scoped>
+/* Countdown overlay positioning */
+.countdown-overlay {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: 100%;
+    text-align: center;
+    pointer-events: none; /* Allow clicks to pass through to elements below */
+}
+
+.countdown-overlay :deep(.countdown-timer) {
+    pointer-events: auto; /* Re-enable pointer events for the actual countdown */
+}
+
+/* Ensure countdown styling works with the maintenance page theme */
+.countdown-overlay :deep(.timer-number) {
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.countdown-overlay :deep(.timer-label) {
+    color: #00ffe6;
+}
+
+/* Add a subtle background to make countdown more readable */
+.countdown-overlay :deep(.timer-unit) {
+    margin: 0 0.25rem;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .countdown-overlay {
+        top: 10px;
+    }
+
+    .countdown-overlay :deep(.timer-number) {
+        font-size: 2rem;
+    }
+
+    .countdown-overlay :deep(.timer-unit) {
+        padding: 0.3rem;
+        margin: 0 0.15rem;
+    }
+}
+</style>
