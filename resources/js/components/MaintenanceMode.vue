@@ -383,7 +383,6 @@ onMounted(async () => {
 /* Countdown overlay positioning */
 .countdown-overlay {
     position: absolute;
-    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
