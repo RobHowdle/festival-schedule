@@ -3,7 +3,12 @@
         <div class="hero-panel" id="page-content">
             <div class="hero-detail"></div>
             <div class="title-wrap">
-                <div class="hero-pane splash">
+                <!-- Main splash screen -->
+                <div
+                    class="hero-pane splash"
+                    id="maintenance-splash"
+                    :class="{ hidden: showLoginForm }"
+                >
                     <h1>
                         <img
                             class="animation-slideUp"
@@ -15,7 +20,76 @@
                         The UK's Premier Rock Festival
                     </div>
                     <div class="hp-panel details animation-fadeIn">
-                        <span class="splash-link">See you next year...</span>
+                        <span>See you next year...</span>
+                        <span class="splash-link-wrap">
+                            <a
+                                class="splash-link"
+                                href="https://discord.gg/ZEsUUVq2MT"
+                                target="_blank"
+                                >Discord</a
+                            >
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Admin Login Form -->
+                <div
+                    class="hero-pane splash"
+                    id="maintenance-login-form"
+                    :class="{ hidden: !showLoginForm }"
+                >
+                    <h1>
+                        <img
+                            class="animation-slideUp"
+                            src="/maintenance_assets/images/dl-logo.svg"
+                            alt="Download Festival"
+                        />
+                    </h1>
+                    <div class="hp-panel tag-line">Admin Login</div>
+                    <div class="hp-panel details animation-fadeIn">
+                        <form
+                            id="admin-login-form"
+                            @submit.prevent="handleLogin"
+                        >
+                            <div class="form-group">
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Email Address"
+                                    required
+                                    autocomplete="email"
+                                    v-model="loginForm.email"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Password"
+                                    required
+                                    autocomplete="current-password"
+                                    v-model="loginForm.password"
+                                />
+                            </div>
+                            <button type="submit" class="button-submit">
+                                Login
+                            </button>
+                            <button
+                                type="button"
+                                @click="backToSplash"
+                                class="button-submit"
+                            >
+                                Back
+                            </button>
+                            <div
+                                class="login-error-message"
+                                :class="{ hidden: !loginError }"
+                            >
+                                {{ loginError }}
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -57,7 +131,14 @@
                 id="hidden-aria-alerts-assertive"
                 aria-live="assertive"
             ></div>
-            <span class="dl-dog-detail"></span>
+            <!-- Download dog trigger for admin login -->
+            <a
+                href="#"
+                class="dl-dog-detail"
+                id="dl-dog-trigger"
+                aria-label="Toggle Admin Login"
+                @click.prevent="toggleLoginForm"
+            ></a>
             <div class="say-hello"></div>
         </footer>
         <div class="footer-detailing-back">
@@ -68,6 +149,72 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
+import { router } from "@inertiajs/vue3";
+
+import "../../css/maintenance-style.css";
+import "../../css/maintenance-print.css";
+
+// Reactive data
+const showLoginForm = ref(false);
+const loginForm = ref({
+    email: "",
+    password: "",
+});
+const loginError = ref("");
+
+// Methods
+const toggleLoginForm = () => {
+    showLoginForm.value = !showLoginForm.value;
+    loginError.value = "";
+    // Clear form when toggling
+    if (!showLoginForm.value) {
+        loginForm.value.email = "";
+        loginForm.value.password = "";
+    }
+};
+
+const backToSplash = () => {
+    showLoginForm.value = false;
+    loginError.value = "";
+    // Clear form data
+    loginForm.value.email = "";
+    loginForm.value.password = "";
+};
+
+const handleLogin = async () => {
+    try {
+        loginError.value = "";
+
+        // Example login check (replace with your actual authentication)
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN":
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content") || "",
+            },
+            body: JSON.stringify({
+                email: loginForm.value.email,
+                password: loginForm.value.password,
+            }),
+        });
+
+        if (response.ok) {
+            // Redirect to dashboard or wherever you want
+            window.location.href = "/dashboard";
+        } else {
+            const errorData = await response.json();
+            loginError.value = errorData.message || "Invalid credentials";
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        loginError.value = "An error occurred. Please try again.";
+    }
+};
+
 document.documentElement.className = document.documentElement.className.replace(
     "no-js",
     "js"
@@ -128,6 +275,7 @@ function sniff() {
         (this.browserVersion = parseInt(f)),
         (this.browserVersionExtended = f);
 }
+
 var sniffInstance = new sniff();
 "undefined" != typeof document.documentElement.classList
     ? (document.documentElement.classList.add(sniffInstance.browserType),
@@ -146,7 +294,19 @@ var sniffInstance = new sniff();
       null != sniffInstance.mobile &&
           (document.documentElement.className +=
               " " + sniffInstance.mobile.toString().toLowerCase()));
-</script>
 
-<style src="../../css/maintenance-style.css"></style>
-<style src="../../css/maintenance-print.css" media="print"></style>
+onMounted(async () => {
+    // Load external JavaScript files from resources
+    try {
+        // Import jQuery
+        await import("../../js/jquery.min.js");
+
+        // Import main scripts
+        await import("../../js/maintenance-script.js");
+
+        console.log("All maintenance scripts loaded successfully");
+    } catch (error) {
+        console.warn("Error loading maintenance scripts:", error);
+    }
+});
+</script>
