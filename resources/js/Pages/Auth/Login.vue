@@ -132,7 +132,7 @@ const submit = () => {
                         <!-- Submit Button -->
                         <div class="pt-4">
                             <PrimaryButton
-                                class="w-full py-3 px-4 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-cyan-500 hover:to-cyan-400 border border-cyan-400/50 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-transparent"
+                                class="w-full py-3 px-4 bg-gradient-to-r justify-center from-gray-800 to-gray-900 hover:from-cyan-500 hover:to-cyan-400 border border-cyan-400/50 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-transparent"
                                 :class="{
                                     'opacity-50 cursor-not-allowed':
                                         form.processing,

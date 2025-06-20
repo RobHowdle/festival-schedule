@@ -38,8 +38,8 @@ onMounted(() => {
         class="min-h-screen"
         style="
             background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)),
-                url('/storage/images/timetable_background.png') center/cover
-                    no-repeat fixed;
+                url('/images/timetable_background.png') center/cover no-repeat
+                    fixed;
         "
     >
         <!-- Navbar with glass effect -->
