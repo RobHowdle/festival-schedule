@@ -46,7 +46,7 @@ onMounted(() => {
             class="bg-white/5 backdrop-blur-xl backdrop-saturate-150 border-b border-white/20 shadow-lg relative z-50"
         >
             <!-- Primary Navigation Menu -->
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 justify-between items-center">
                     <div class="flex items-center">
                         <!-- Logo -->
