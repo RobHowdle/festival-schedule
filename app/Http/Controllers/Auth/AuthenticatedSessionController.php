@@ -21,7 +21,7 @@ class AuthenticatedSessionController extends Controller
      *
      * @var string
      */
-    public const HOME = '/dashboard'; // <--- ADD THIS LINE HERE
+    public const HOME = '/dashboard';
 
     /**
      * Display the login view.
@@ -43,7 +43,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // ADD OR MODIFY THIS BLOCK
         // Set a session flag to bypass maintenance mode if maintenance is currently active.
         // This means ANY successfully logged-in user can bypass it.
         if (config('app.maintenance_mode_enabled') === true && Auth::user()->is_admin) {
@@ -63,7 +62,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // ADD OR MODIFY THIS LINE
         // Clear maintenance bypass flag on logout
         session()->forget('maintenance_bypass'); 
 

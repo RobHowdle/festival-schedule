@@ -33,7 +33,6 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? $request->user()->only('id', 'name', 'email') : null, // Good practice to limit user data
             ],
-            // ADD THESE LINES FOR ERROR AND STATUS SHARING
             'errors' => fn () => $request->session()->get('errors')
                                     ? $request->session()->get('errors')->getBag('default')->getMessages()
                                     : (object) [], // Pass an empty object if no errors

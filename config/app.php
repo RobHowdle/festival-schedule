@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Maintenance Mode Check
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option determines the state of the maintenance mode and will
+    | manage Laravel's "maintenance mode" status. 
+    |
+    |
+    */
+
+    'maintenance_mode_enabled' => env('MAINTENANCE_MODE', false),
+
 ];
