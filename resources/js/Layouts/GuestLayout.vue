@@ -1,14 +1,30 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Navbar from "@/components/Navbar.vue";
 import { Link } from "@inertiajs/vue3";
 
 const sidebarOpen = ref(false);
+const particles = ref([]);
 
 const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value;
 };
+
+// Create Particles Data Array
+const createParticles = () => {
+    const particleCount = 20;
+    particles.value = Array.from({ length: particleCount }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        animationDelay: Math.random() * 8,
+        animationDuration: 8 + Math.random() * 4,
+    }));
+};
+
+onMounted(() => {
+    createParticles();
+});
 </script>
 
 <template>
@@ -29,7 +45,7 @@ const toggleSidebar = () => {
                 'fixed inset-y-0 right-0 z-50 w-64 bg-white/5 backdrop-blur-xl backdrop-saturate-150 border-l border-white/20 shadow-2xl transform transition-all duration-300 ease-in-out',
                 sidebarOpen ? 'translate-x-0' : 'translate-x-full',
             ]"
-            style="top: 96px"
+            style="top: 80px"
         >
             <nav class="h-full px-4 py-6 overflow-y-auto">
                 <div class="space-y-1">
@@ -98,12 +114,36 @@ const toggleSidebar = () => {
                             viewBox="0 0 20 20"
                         >
                             <path
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            ></path>
+                                d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"
+                            />
                         </svg>
                         <span
                             class="group-hover:translate-x-1 transition-transform duration-200"
                             >Artists</span
+                        >
+                    </Link>
+
+                    <Link
+                        href="/my-artists"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        :class="{
+                            'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                $page.url === '/my-artists',
+                        }"
+                        @click="sidebarOpen = false"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                            />
+                        </svg>
+                        <span
+                            class="group-hover:translate-x-1 transition-transform duration-200"
+                            >My Artists</span
                         >
                     </Link>
 
@@ -122,17 +162,125 @@ const toggleSidebar = () => {
                             viewBox="0 0 20 20"
                         >
                             <path
-                                fill-rule="evenodd"
-                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                clip-rule="evenodd"
-                            ></path>
+                                d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-1.929 3.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 10c0-.995-.102-1.951-.343-2.657a1 1 0 010-1.414z"
+                            />
+                            <path
+                                d="M13.828 7.172a1 1 0 011.414 0A5.983 5.983 0 0116 10a5.983 5.983 0 01-.758 2.828 1 1 0 11-1.414-1.414A3.987 3.987 0 0014 10c0-.537-.121-1.045-.342-1.414a1 1 0 010-1.414z"
+                            />
                         </svg>
                         <span
                             class="group-hover:translate-x-1 transition-transform duration-200"
                             >Stages</span
                         >
                     </Link>
+                    <Link
+                        href="/vendors"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        :class="{
+                            'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                $page.url === '/vendors',
+                        }"
+                        @click="sidebarOpen = false"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6V5a2 2 0 114 0v1H8zm-3.5 5a.5.5 0 001 0 1.5 1.5 0 003 0 .5.5 0 001 0 3.5 3.5 0 01-7 0z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <span
+                            class="group-hover:translate-x-1 transition-transform duration-200"
+                            >Vendors</span
+                        >
+                    </Link>
+
+                    <Link
+                        href="/map"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        :class="{
+                            'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                $page.url === '/map',
+                        }"
+                        @click="sidebarOpen = false"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <span
+                            class="group-hover:translate-x-1 transition-transform duration-200"
+                            >Map</span
+                        >
+                    </Link>
                 </div>
+
+                <!-- Divider with glass effect -->
+                <div
+                    class="my-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                ></div>
+                <Link
+                    href="/wallpaper-generator"
+                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                    :class="{
+                        'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                            $page.url === '/wallpaper-generator',
+                    }"
+                    @click="sidebarOpen = false"
+                >
+                    <svg
+                        class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zM6 4a1 1 0 011-1h6a1 1 0 011 1v12a1 1 0 01-1 1H7a1 1 0 01-1-1V4zm4 10a1 1 0 100 2 1 1 0 000-2z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <span
+                        class="group-hover:translate-x-1 transition-transform duration-200"
+                        >Phone Wallpaper</span
+                    >
+                </Link>
+
+                <Link
+                    href="/poster-generator"
+                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                    :class="{
+                        'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                            $page.url === '/poster-generator',
+                    }"
+                    @click="sidebarOpen = false"
+                >
+                    <svg
+                        class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <span
+                        class="group-hover:translate-x-1 transition-transform duration-200"
+                        >Poster Generator</span
+                    >
+                </Link>
 
                 <!-- Divider with glass effect -->
                 <div
@@ -207,15 +355,63 @@ const toggleSidebar = () => {
                 v-if="sidebarOpen"
                 @click="sidebarOpen = false"
                 class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-                style="top: 96px"
+                style="top: 80px"
             ></div>
         </Transition>
 
         <!-- Main content - full width -->
         <main class="min-h-screen text-white">
+            <!-- Floating particles background -->
+            <div class="particles">
+                <div
+                    v-for="particle in particles"
+                    :key="particle.id"
+                    class="particle"
+                    :style="{
+                        left: particle.left + '%',
+                        animationDelay: particle.animationDelay + 's',
+                        animationDuration: particle.animationDuration + 's',
+                    }"
+                ></div>
+            </div>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                 <slot />
             </div>
         </main>
     </div>
 </template>
+
+<style scoped>
+/* Floating particles background */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #00ffc3;
+    border-radius: 50%;
+    animation: float-particle 8s infinite ease-in-out;
+    opacity: 0.3;
+}
+
+@keyframes float-particle {
+    0%,
+    100% {
+        transform: translateY(100vh) translateX(0) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(0) translateX(50px) scale(1);
+    }
+}
+</style>

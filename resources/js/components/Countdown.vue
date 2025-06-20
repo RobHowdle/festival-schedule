@@ -51,14 +51,15 @@ export default {
             days: "00",
             hours: "00",
             minutes: "00",
-            phase: "countdown25",
+            phase: "countdown",
             interval: null,
-            festivalStart: new Date("2025-06-12T00:00:00").getTime(),
-            festivalEnd: new Date("2025-06-16T00:00:00").getTime(),
-            nextDownloadStart: new Date("2026-06-10T00:00:00").getTime(),
+            festivalStart: null,
+            festivalEnd: null,
+            nextDownloadStart: null,
         };
     },
     mounted() {
+        this.initializeDates();
         this.updateTimer();
         this.interval = setInterval(this.updateTimer, 1000);
     },
@@ -68,14 +69,50 @@ export default {
         }
     },
     methods: {
+        initializeDates() {
+            // Get dates from environment variables
+            const festivalStartEnv = import.meta.env.VITE_FESTIVAL_START_DATE;
+            const festivalEndEnv = import.meta.env.VITE_FESTIVAL_END_DATE;
+            const nextFestivalStartEnv = import.meta.env
+                .VITE_NEXT_FESTIVAL_START_DATE;
+
+            // Parse the dates or fall back to defaults
+            this.festivalStart = festivalStartEnv
+                ? new Date(festivalStartEnv).getTime()
+                : new Date("2026-06-10T12:00:00").getTime();
+
+            this.festivalEnd = festivalEndEnv
+                ? new Date(festivalEndEnv).getTime()
+                : new Date("2026-06-14T12:00:00").getTime();
+
+            this.nextDownloadStart = nextFestivalStartEnv
+                ? new Date(nextFestivalStartEnv).getTime()
+                : new Date("2027-06-09T12:00:00").getTime();
+
+            // Validate dates
+            if (
+                isNaN(this.festivalStart) ||
+                isNaN(this.festivalEnd) ||
+                isNaN(this.nextDownloadStart)
+            ) {
+                console.warn(
+                    "Invalid festival dates in environment variables, using defaults"
+                );
+                this.festivalStart = new Date("2026-06-10T12:00:00").getTime();
+                this.festivalEnd = new Date("2026-06-14T12:00:00").getTime();
+                this.nextDownloadStart = new Date(
+                    "2027-06-09T12:00:00"
+                ).getTime();
+            }
+        },
         getPhaseAndTarget() {
             const now = Date.now();
             if (now < this.festivalStart) {
-                return { phase: "countdown25", target: this.festivalStart };
+                return { phase: "countdown", target: this.festivalStart };
             } else if (now >= this.festivalStart && now < this.festivalEnd) {
                 return { phase: "pit", target: null };
             } else {
-                return { phase: "countdown26", target: this.nextDownloadStart };
+                return { phase: "countdown", target: this.nextDownloadStart };
             }
         },
         updateTimer() {

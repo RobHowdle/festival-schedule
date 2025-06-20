@@ -13,9 +13,9 @@ const toggleSidebar = () => {
 
 <template>
     <nav
-        class="bg-black/20 backdrop-blur-xl py-4 backdrop-saturate-180 border-b border-white/20 shadow-2xl relative z-60 w-full"
+        class="bg-black/20 backdrop-blur-xl backdrop-saturate-180 border-b border-white/20 shadow-2xl relative z-60 w-full"
     >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Left side: Logo -->
                 <div class="flex items-center space-x-4">
