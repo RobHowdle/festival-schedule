@@ -42,11 +42,17 @@ const stageForm = useForm({
 
 const vendorForm = useForm({
     name: "",
-    description: "",
-    location: "",
     type: "",
-    contact_email: "",
-    website: "",
+    categories: "",
+    description: "",
+    email: "",
+    phone: "",
+    social_links: "",
+    logo: "",
+    menu: "",
+    tags: "",
+    dietary_restrictions: "",
+    restrictions: "",
 });
 
 // Modal functions
@@ -1144,15 +1150,14 @@ const submitVendor = () => {
                                                 Select type
                                             </option>
                                             <option value="main">
-                                                Main Stage
+                                                Open Air Stage
                                             </option>
                                             <option value="second">
-                                                Second Stage
+                                                Tent Stage
                                             </option>
                                             <option value="acoustic">
-                                                Acoustic Stage
+                                                Indoor Stage
                                             </option>
-                                            <option value="dj">DJ Stage</option>
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
@@ -1222,8 +1227,9 @@ const submitVendor = () => {
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-200 mb-2"
-                                            >Vendor Name</label
                                         >
+                                            Vendor Name
+                                        </label>
                                         <input
                                             v-model="vendorForm.name"
                                             type="text"
@@ -1251,11 +1257,13 @@ const submitVendor = () => {
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-200 mb-2"
-                                            >Vendor Type</label
                                         >
+                                            Vendor Type
+                                        </label>
                                         <select
                                             v-model="vendorForm.type"
                                             class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                            required
                                         >
                                             <option value="">
                                                 Select type
@@ -1271,31 +1279,200 @@ const submitVendor = () => {
                                             </option>
                                             <option value="other">Other</option>
                                         </select>
+                                        <Transition
+                                            enter-active-class="duration-200 ease-out"
+                                            enter-from-class="opacity-0 translate-y-1"
+                                            enter-to-class="opacity-100 translate-y-0"
+                                            leave-active-class="duration-150 ease-in"
+                                            leave-from-class="opacity-100 translate-y-0"
+                                            leave-to-class="opacity-0 translate-y-1"
+                                        >
+                                            <div
+                                                v-if="vendorForm.errors.type"
+                                                class="mt-1 text-sm text-red-400"
+                                            >
+                                                {{ vendorForm.errors.type }}
+                                            </div>
+                                        </Transition>
                                     </div>
 
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-200 mb-2"
-                                            >Location</label
                                         >
+                                            Categories
+                                        </label>
                                         <input
-                                            v-model="vendorForm.location"
+                                            v-model="vendorForm.categories"
                                             type="text"
                                             class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
-                                            placeholder="e.g., Food Court, Main Entrance"
+                                            placeholder="e.g., Pizza, Burgers, Vegetarian"
                                         />
+                                        <p class="mt-1 text-xs text-gray-400">
+                                            Separate multiple categories with
+                                            commas
+                                        </p>
                                     </div>
 
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-200 mb-2"
-                                            >Description</label
                                         >
+                                            Description
+                                        </label>
                                         <textarea
                                             v-model="vendorForm.description"
                                             rows="3"
                                             class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200 resize-none"
                                             placeholder="Brief description of the vendor"
+                                        ></textarea>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-200 mb-2"
+                                            >
+                                                Email
+                                            </label>
+                                            <input
+                                                v-model="vendorForm.email"
+                                                type="email"
+                                                class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                                placeholder="contact@vendor.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-200 mb-2"
+                                            >
+                                                Phone
+                                            </label>
+                                            <input
+                                                v-model="vendorForm.phone"
+                                                type="tel"
+                                                class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                                placeholder="+1 (555) 123-4567"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-200 mb-2"
+                                        >
+                                            Social Links
+                                        </label>
+                                        <textarea
+                                            v-model="vendorForm.social_links"
+                                            rows="2"
+                                            class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200 resize-none"
+                                            placeholder="https://facebook.com/vendor, https://instagram.com/vendor"
+                                        ></textarea>
+                                        <p class="mt-1 text-xs text-gray-400">
+                                            Separate multiple links with commas
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-200 mb-2"
+                                        >
+                                            Logo URL
+                                        </label>
+                                        <input
+                                            v-model="vendorForm.logo"
+                                            type="url"
+                                            class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                            placeholder="https://example.com/logo.jpg"
+                                        />
+                                    </div>
+
+                                    <!-- Food & Drink Specific Fields -->
+                                    <Transition
+                                        enter-active-class="duration-300 ease-out"
+                                        enter-from-class="opacity-0 -translate-y-2"
+                                        enter-to-class="opacity-100 translate-y-0"
+                                        leave-active-class="duration-200 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0"
+                                        leave-to-class="opacity-0 -translate-y-2"
+                                    >
+                                        <div
+                                            v-if="vendorForm.type === 'food'"
+                                            class="space-y-4 p-4 bg-orange-500/10 rounded-xl border border-orange-500/20"
+                                        >
+                                            <h4
+                                                class="text-orange-400 font-medium text-sm"
+                                            >
+                                                Food & Drink Details
+                                            </h4>
+
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-200 mb-2"
+                                                >
+                                                    Menu
+                                                </label>
+                                                <textarea
+                                                    v-model="vendorForm.menu"
+                                                    rows="3"
+                                                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200 resize-none"
+                                                    placeholder="List menu items, prices, etc."
+                                                ></textarea>
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-200 mb-2"
+                                                >
+                                                    Dietary Restrictions
+                                                </label>
+                                                <input
+                                                    v-model="
+                                                        vendorForm.dietary_restrictions
+                                                    "
+                                                    type="text"
+                                                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                                    placeholder="e.g., Vegetarian, Vegan, Gluten-free, Halal"
+                                                />
+                                                <p
+                                                    class="mt-1 text-xs text-gray-400"
+                                                >
+                                                    Separate multiple
+                                                    restrictions with commas
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Transition>
+
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-200 mb-2"
+                                        >
+                                            Tags
+                                        </label>
+                                        <input
+                                            v-model="vendorForm.tags"
+                                            type="text"
+                                            class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200"
+                                            placeholder="e.g., local, organic, family-friendly"
+                                        />
+                                        <p class="mt-1 text-xs text-gray-400">
+                                            Separate multiple tags with commas
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-200 mb-2"
+                                        >
+                                            General Restrictions
+                                        </label>
+                                        <textarea
+                                            v-model="vendorForm.restrictions"
+                                            rows="2"
+                                            class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all duration-200 resize-none"
+                                            placeholder="e.g., Cash only, No outside food, 21+ only"
                                         ></textarea>
                                     </div>
 
@@ -1322,8 +1499,9 @@ const submitVendor = () => {
                                                         !vendorForm.processing
                                                     "
                                                     key="create"
-                                                    >Create Vendor</span
                                                 >
+                                                    Create Vendor
+                                                </span>
                                                 <span
                                                     v-else
                                                     key="creating"

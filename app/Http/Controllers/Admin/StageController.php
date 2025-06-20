@@ -11,11 +11,8 @@ class StageController extends Controller
 {
     public function index()
     {
-        $stages = Stage::latest()->paginate(10);
-
-        return Inertia::render('Admin/Stages/Index', [
-            'stages' => $stages
-        ]);
+        // Redirect to admin dashboard instead of dedicated index
+        return redirect()->route('admin.dashboard');
     }
 
     public function store(Request $request)
@@ -38,8 +35,18 @@ class StageController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.stages.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Stage created successfully!');
+    }
+
+    public function show(Stage $stage)
+    {
+        return redirect()->route('admin.dashboard');
+    }
+
+    public function edit(Stage $stage)
+    {
+        return redirect()->route('admin.dashboard');
     }
 
     public function update(Request $request, Stage $stage)
@@ -62,7 +69,7 @@ class StageController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.stages.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Stage updated successfully!');
     }
 
@@ -77,7 +84,7 @@ class StageController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.stages.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Stage deleted successfully!');
     }
 }

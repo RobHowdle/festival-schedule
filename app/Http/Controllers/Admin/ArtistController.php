@@ -10,29 +10,16 @@ use Inertia\Inertia;
 
 class ArtistController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $artists = Artist::latest()->paginate(10);
-
-        return Inertia::render('Admin/Artists/Index', [
-            'artists' => $artists
-        ]);
+        return redirect()->route('admin.dashboard');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return Inertia::render('Admin/Artists/Create');
+        return redirect()->route('admin.dashboard');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -57,7 +44,6 @@ class ArtistController extends Controller
         $validated['slug'] = $slug;
         $artist = Artist::create($validated);
 
-        // Handle different response types based on request
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -66,33 +52,20 @@ class ArtistController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.artists.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Artist created successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Artist $artist)
     {
-        return Inertia::render('Admin/Artists/Show', [
-            'artist' => $artist
-        ]);
+        return redirect()->route('admin.dashboard');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Artist $artist)
     {
-        return Inertia::render('Admin/Artists/Edit', [
-            'artist' => $artist
-        ]);
+        return redirect()->route('admin.dashboard');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Artist $artist)
     {
         $validated = $request->validate([
@@ -128,13 +101,10 @@ class ArtistController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.artists.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Artist updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Artist $artist)
     {
         $artist->delete();
@@ -146,23 +116,7 @@ class ArtistController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.artists.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Artist deleted successfully!');
-    }
-
-    /**
-     * Custom method for toggling featured status
-     */
-    public function toggleFeatured(Artist $artist)
-    {
-        $artist->update([
-            'is_featured' => !$artist->is_featured
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Artist featured status updated!',
-            'is_featured' => $artist->is_featured
-        ]);
     }
 }
