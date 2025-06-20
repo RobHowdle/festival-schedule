@@ -1,5 +1,5 @@
 <template>
-    <GuestLayout>
+    <MainLayout>
         <div class="py-6">
             <div class="max-w-7xl mx-auto">
                 <div
@@ -26,10 +26,10 @@
         <div class="py-6">
             <div class="max-w-7xl mx-auto"><Weather /></div>
         </div>
-    </GuestLayout>
+    </MainLayout>
 </template>
 
 <script setup>
-import GuestLayout from "@/Layouts/GuestLayout.vue";
+import MainLayout from "@/Layouts/MainLayout.vue";
 import Weather from "@/components/Weather.vue";
 </script>
