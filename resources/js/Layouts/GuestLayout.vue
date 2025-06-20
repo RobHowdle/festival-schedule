@@ -1,11 +1,17 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import { ref, onMounted, computed } from "vue";
+import ApplicationLogo from "@/components/ApplicationLogo.vue";
 import Navbar from "@/components/Navbar.vue";
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
 
 const sidebarOpen = ref(false);
 const particles = ref([]);
+const page = usePage();
+
+// Check if user is authenticated
+const isAuthenticated = computed(() => {
+    return page.props.auth && page.props.auth.user;
+});
 
 const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value;
@@ -289,55 +295,107 @@ onMounted(() => {
 
                 <!-- Authentication Links -->
                 <div class="space-y-1">
-                    <Link
-                        href="/register"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
-                        :class="{
-                            'bg-white/15 text-white shadow-lg backdrop-blur-sm':
-                                $page.url === '/register',
-                        }"
-                        @click="sidebarOpen = false"
-                    >
-                        <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                    <template v-if="isAuthenticated">
+                        <Link
+                            href="/dashboard"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            :class="{
+                                'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                    $page.url === '/dashboard',
+                            }"
+                            @click="sidebarOpen = false"
                         >
-                            <path
-                                d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
-                            ></path>
-                        </svg>
-                        <span
-                            class="group-hover:translate-x-1 transition-transform duration-200"
-                            >Register</span
-                        >
-                    </Link>
+                            <svg
+                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+                                />
+                            </svg>
+                            <span
+                                class="group-hover:translate-x-1 transition-transform duration-200"
+                                >Dashboard</span
+                            >
+                        </Link>
 
-                    <Link
-                        href="/login"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
-                        :class="{
-                            'bg-white/15 text-white shadow-lg backdrop-blur-sm':
-                                $page.url === '/login',
-                        }"
-                        @click="sidebarOpen = false"
-                    >
-                        <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                        <Link
+                            href="/logout"
+                            method="post"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            @click="sidebarOpen = false"
                         >
-                            <path
-                                fill-rule="evenodd"
-                                d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span
-                            class="group-hover:translate-x-1 transition-transform duration-200"
-                            >Login</span
+                            <svg
+                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span
+                                class="group-hover:translate-x-1 transition-transform duration-200"
+                                >Logout</span
+                            >
+                        </Link>
+                    </template>
+
+                    <!-- Show Register and Login if not authenticated -->
+                    <template v-else>
+                        <Link
+                            href="/register"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            :class="{
+                                'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                    $page.url === '/register',
+                            }"
+                            @click="sidebarOpen = false"
                         >
-                    </Link>
+                            <svg
+                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
+                                />
+                            </svg>
+                            <span
+                                class="group-hover:translate-x-1 transition-transform duration-200"
+                                >Register</span
+                            >
+                        </Link>
+
+                        <Link
+                            href="/login"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            :class="{
+                                'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                    $page.url === '/login',
+                            }"
+                            @click="sidebarOpen = false"
+                        >
+                            <svg
+                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span
+                                class="group-hover:translate-x-1 transition-transform duration-200"
+                                >Login</span
+                            >
+                        </Link>
+                    </template>
                 </div>
             </nav>
         </div>

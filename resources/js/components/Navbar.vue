@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { Link } from "@inertiajs/vue3";
 import Countdown from "./Countdown.vue";
-import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import ApplicationLogo from "@/components/ApplicationLogo.vue";
 
 const emit = defineEmits(["toggle-sidebar"]);
 
