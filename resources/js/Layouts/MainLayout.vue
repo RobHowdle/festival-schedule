@@ -321,6 +321,33 @@ onMounted(() => {
                         </Link>
 
                         <Link
+                            v-if="page.props.auth.user.is_admin"
+                            href="/admin-dashboard"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            :class="{
+                                'bg-white/15 text-white shadow-lg backdrop-blur-sm':
+                                    $page.url === '/admin-dashboard',
+                            }"
+                            @click="sidebarOpen = false"
+                        >
+                            <svg
+                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6V5a2 2 0 114 0v1H8zm-3.5 5a.5.5 0 001 0 1.5 1.5 0 003 0 .5.5 0 001 0 3.5 3.5 0 01-7 0z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span
+                                class="group-hover:translate-x-1 transition-transform duration-200"
+                                >Admin Dashboard</span
+                            >
+                        </Link>
+
+                        <Link
                             href="/logout"
                             method="post"
                             class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"

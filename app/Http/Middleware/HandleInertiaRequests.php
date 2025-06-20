@@ -27,16 +27,16 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-        public function share(Request $request): array
+    public function share(Request $request): array
     {
         return array_merge(parent::share($request), [ // Use array_merge to ensure parent::share() props are included
             'auth' => [
-                'user' => $request->user() ? $request->user()->only('id', 'name', 'email') : null, // Good practice to limit user data
+                'user' => $request->user() ? $request->user()->only('id', 'name', 'email', 'is_admin', 'is_dev') : null, // Good practice to limit user data
             ],
-            'errors' => fn () => $request->session()->get('errors')
-                                    ? $request->session()->get('errors')->getBag('default')->getMessages()
-                                    : (object) [], // Pass an empty object if no errors
-            'status' => fn () => $request->session()->get('status'), // For general success/info messages
+            'errors' => fn() => $request->session()->get('errors')
+                ? $request->session()->get('errors')->getBag('default')->getMessages()
+                : (object) [], // Pass an empty object if no errors
+            'status' => fn() => $request->session()->get('status'), // For general success/info messages
         ]);
     }
 }
