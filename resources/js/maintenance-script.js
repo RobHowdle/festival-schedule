@@ -553,11 +553,5 @@ $((function() {
         $maintenanceSplash.removeClass('hidden'); // Fade in splash
     });
 
-    // Prevent Admin Login Form from submitting for now
-    $adminLoginForm.on('submit', function(e) {
-        e.preventDefault(); // This stops the form from submitting!
-        console.log("Login form submission prevented.");
-    });
-
     // --- END NEW JAVASCRIPT ---
 }));

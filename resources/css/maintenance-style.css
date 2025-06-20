@@ -766,7 +766,43 @@ body * {
 #maintenance-login-form #back-to-splash:hover {
     text-decoration: underline;
 }
+.input-container {
+    display: flex; /* Use flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    margin-bottom: 20px; /* Spacing between input blocks */
+    width: 100%; /* Ensure container takes full width */
+}
 
+/* Style the actual TextInput component's root element */
+/* This targets the <input> element rendered by TextInput.vue */
+.input-container .input-field {
+    width: 80%; /* Limit width so margin: auto can center it */
+    max-width: 300px; /* Optional: limit max width further */
+    margin: 0 auto; /* Crucial for centering a block element */
+    /* Add any other specific input styling here */
+    padding: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    background-color: rgba(0, 7, 7, 0.7);
+    color: #39eaff;
+    font-size: 1em;
+    border-radius: 3px;
+    /* Tailwind 'block w-full' might be overriding. Make sure your custom CSS has higher specificity. */
+}
+
+/* If the TextInput.vue's root element is not directly the <input>,
+   you might need to target the <input> inside it like this: */
+/* .input-container .input-field input {
+    margin: 0 auto !important;
+    width: 80% !important;
+    max-width: 300px !important;
+} */
+/* However, PrimaryButton.vue's template is just <button>, and TextInput.vue's template is just <input> so direct styling should work. */
+
+/* Also adjust the button container to center */
+.hp-panel.details form .flex.items-center.justify-end {
+    justify-content: center !important; /* Force center for buttons */
+    /* Remove ms-4 from button class in template if you want them truly centered without offset */
+}
 /* Ensure the main splash also has opacity for transitions */
 .hero-pane.splash {
     position: absolute; /* Needed for transition if overlapping */

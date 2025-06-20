@@ -1,5 +1,7 @@
 <?php
 
+// app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -13,6 +15,14 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
+
+        /**
+     * Where to redirect users after login.
+     *
+     * @var string
+     */
+    public const HOME = '/dashboard'; // <--- ADD THIS LINE HERE
+
     /**
      * Display the login view.
      */
@@ -29,11 +39,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $request->authenticate(); // This attempts login and handles validation errors
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // ADD OR MODIFY THIS BLOCK
+        // Set a session flag to bypass maintenance mode if maintenance is currently active.
+        // This means ANY successfully logged-in user can bypass it.
+        if (config('app.maintenance_mode_enabled') === true && Auth::user()->is_admin) {
+             session(['maintenance_bypass' => true]);
+        }
+
+        return redirect()->intended(self::HOME);
     }
 
     /**
@@ -44,8 +61,11 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
+
+        // ADD OR MODIFY THIS LINE
+        // Clear maintenance bypass flag on logout
+        session()->forget('maintenance_bypass'); 
 
         return redirect('/');
     }
