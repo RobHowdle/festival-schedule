@@ -1,6 +1,6 @@
 /Pages/Welcome.vue
 <template>
-    <AppLayout>
+    <GuestLayout>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div
@@ -12,20 +12,20 @@
                         <h1
                             class="text-2xl font-medium text-gray-900 dark:text-white"
                         >
-                            Welcome to Festival Schedule
+                            Welcome to Your Next Festival
                         </h1>
                         <p
                             class="mt-6 text-gray-500 dark:text-gray-400 leading-relaxed"
                         >
-                            Your festival schedule and countdown timer.
+                            View lineups, artists, vendors and more.
                         </p>
                     </div>
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </GuestLayout>
 </template>
 
 <script setup>
-import AppLayout from "@/Layouts/AppLayout.vue";
+import GuestLayout from "@/Layouts/GuestLayout.vue";
 </script>
