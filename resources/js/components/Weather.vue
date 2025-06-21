@@ -1,5 +1,47 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { usePage } from "@inertiajs/vue3";
+
+// Add preview props
+const props = defineProps({
+    previewMode: {
+        type: Boolean,
+        default: false,
+    },
+    previewColors: {
+        type: Object,
+        default: () => ({}),
+    },
+});
+
+const page = usePage();
+
+// Get colors from preview or system settings
+const getColor = (colorKey) => {
+    if (props.previewMode && props.previewColors[colorKey]) {
+        return props.previewColors[colorKey];
+    }
+
+    // Use systemSettings from shared props
+    const systemSettings = page.props.systemSettings || {};
+    const colorMap = {
+        primary: systemSettings.color_primary || "#8B5CF6",
+        secondary: systemSettings.color_secondary || "#06B6D4",
+        accent: systemSettings.color_accent || "#F59E0B",
+        background: systemSettings.color_background || "#1F2937",
+        text: systemSettings.color_text || "#FFFFFF",
+        textSecondary: systemSettings.color_textSecondary || "#9CA3AF",
+    };
+
+    return colorMap[colorKey];
+};
+
+// Color computed properties for template
+const textColor = computed(() => getColor("text"));
+const textSecondaryColor = computed(() => getColor("textSecondary"));
+const accentColor = computed(() => getColor("accent"));
+const primaryColor = computed(() => getColor("primary"));
+const backgroundColor = computed(() => getColor("background"));
 
 const isExpanded = ref(false);
 const weatherData = ref(null);
@@ -282,33 +324,39 @@ const getCurrentForecast = () => {
 };
 
 onMounted(() => {
-    console.log("Generated festival dates:", festivalDates);
     fetchWeatherData();
 });
 </script>
 
 <template>
-    <!-- Rest of your template remains exactly the same -->
     <div
-        class="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 overflow-hidden"
+        class="backdrop-blur-lg rounded-xl border border-white/20 overflow-hidden"
+        :style="{ backgroundColor: backgroundColor + '10' }"
     >
         <!-- Collapsed Header -->
         <button
             @click="toggleExpanded"
-            class="w-full px-4 py-4 hover:bg-white/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+            class="w-full px-4 py-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+            :class="[isExpanded ? '' : 'hover:bg-white/5']"
+            :style="{
+                backgroundColor: isExpanded ? backgroundColor + '05' : '',
+            }"
         >
             <!-- Title -->
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-white font-semibold text-lg">Weather</h3>
+                <h3 class="font-semibold text-lg" :style="{ color: textColor }">
+                    Weather
+                </h3>
                 <div class="flex items-center space-x-3">
-                    <div class="text-white font-semibold">
+                    <div class="font-semibold" :style="{ color: textColor }">
                         {{ loading ? "--" : getAverageTemp() }}°C
                     </div>
                     <svg
                         :class="[
-                            'w-5 h-5 text-gray-300 transition-transform duration-200',
+                            'w-5 h-5 transition-transform duration-200',
                             isExpanded ? 'rotate-180' : '',
                         ]"
+                        :style="{ color: textSecondaryColor }"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                     >
@@ -328,7 +376,7 @@ onMounted(() => {
                         loading ? "🌤️" : getWeatherIcon(weatherData?.[0]?.icon)
                     }}
                 </div>
-                <div class="text-gray-300 text-sm">
+                <div class="text-sm" :style="{ color: textSecondaryColor }">
                     {{ loading ? "Loading..." : getCurrentForecast() }}
                 </div>
             </div>
@@ -347,7 +395,10 @@ onMounted(() => {
                 <!-- Loading State -->
                 <div v-if="loading" class="p-4 text-center">
                     <div class="animate-pulse">
-                        <div class="text-gray-300 text-sm">
+                        <div
+                            class="text-sm"
+                            :style="{ color: textSecondaryColor }"
+                        >
                             Loading forecast...
                         </div>
                     </div>
@@ -355,12 +406,13 @@ onMounted(() => {
 
                 <!-- Error State -->
                 <div v-else-if="error" class="p-4 text-center">
-                    <div class="text-red-300 text-sm">
+                    <div class="text-sm" :style="{ color: '#FCA5A5' }">
                         {{ error }}
                         <br />
                         <button
                             @click="fetchWeatherData"
-                            class="mt-2 text-cyan-400 hover:text-cyan-300 underline text-xs"
+                            class="mt-2 underline text-xs transition-colors"
+                            :style="{ color: accentColor }"
                         >
                             Try again
                         </button>
@@ -369,7 +421,7 @@ onMounted(() => {
 
                 <!-- No Forecast State -->
                 <div v-else-if="!hasAnyForecast()" class="p-4 text-center">
-                    <div class="text-gray-300 text-sm">
+                    <div class="text-sm" :style="{ color: textSecondaryColor }">
                         Weather forecast not available yet.
                         <br />
                         Check back closer to the festival!
@@ -383,21 +435,42 @@ onMounted(() => {
                         :key="day.date"
                         :class="[
                             'flex items-center justify-between p-3 rounded-lg transition-all duration-200',
-                            day.available
-                                ? 'bg-white/5 hover:bg-white/10 cursor-pointer'
-                                : 'bg-gray-500/20 opacity-60',
+                            day.available ? 'cursor-pointer' : 'opacity-60',
                         ]"
+                        :style="{
+                            backgroundColor: day.available
+                                ? backgroundColor + '05'
+                                : backgroundColor + '02',
+                        }"
                         @click="day.available ? fetchHourlyWeather(day) : null"
+                        @mouseenter="
+                            day.available
+                                ? ($event.target.style.backgroundColor =
+                                      backgroundColor + '10')
+                                : null
+                        "
+                        @mouseleave="
+                            day.available
+                                ? ($event.target.style.backgroundColor =
+                                      backgroundColor + '05')
+                                : null
+                        "
                     >
                         <div class="flex items-center space-x-3">
                             <div class="text-2xl">
                                 {{ getWeatherIcon(day.icon) }}
                             </div>
                             <div>
-                                <div class="text-white font-medium text-sm">
+                                <div
+                                    class="font-medium text-sm"
+                                    :style="{ color: textColor }"
+                                >
                                     {{ day.day }}
                                 </div>
-                                <div class="text-gray-300 text-xs">
+                                <div
+                                    class="text-xs"
+                                    :style="{ color: textSecondaryColor }"
+                                >
                                     {{
                                         day.available
                                             ? day.forecast
@@ -408,22 +481,36 @@ onMounted(() => {
                         </div>
 
                         <div v-if="day.available" class="text-right">
-                            <div class="text-white font-semibold">
+                            <div
+                                class="font-semibold"
+                                :style="{ color: textColor }"
+                            >
                                 {{ day.temp }}°C
                             </div>
-                            <div class="text-cyan-300 text-xs">
+                            <div
+                                class="text-xs"
+                                :style="{ color: accentColor }"
+                            >
                                 {{ day.rain }}% rain
                             </div>
                         </div>
 
                         <div v-else class="text-right">
-                            <div class="text-gray-400 text-sm">--°C</div>
+                            <div
+                                class="text-sm"
+                                :style="{ color: textSecondaryColor }"
+                            >
+                                --°C
+                            </div>
                         </div>
                     </div>
 
                     <!-- Click hint -->
                     <div class="text-center mt-2">
-                        <div class="text-gray-400 text-xs">
+                        <div
+                            class="text-xs"
+                            :style="{ color: textSecondaryColor }"
+                        >
                             Click on a day for hourly forecast
                         </div>
                     </div>
@@ -451,18 +538,27 @@ onMounted(() => {
 
             <!-- Popup Content -->
             <div
-                class="relative bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
+                class="relative backdrop-blur-xl border border-white/20 rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
+                :style="{ backgroundColor: backgroundColor + '80' }"
                 @click.stop
             >
                 <!-- Header -->
                 <div class="p-4 border-b border-white/20">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-white font-semibold text-lg">
+                        <h3
+                            class="font-semibold text-lg"
+                            :style="{ color: textColor }"
+                        >
                             {{ selectedDay?.day }} - Hourly Forecast
                         </h3>
                         <button
                             @click="closeHourlyPopup"
-                            class="text-gray-400 hover:text-white transition-colors p-1"
+                            class="transition-colors p-1"
+                            :style="{ color: textSecondaryColor }"
+                            @mouseenter="$event.target.style.color = textColor"
+                            @mouseleave="
+                                $event.target.style.color = textSecondaryColor
+                            "
                         >
                             <svg
                                 class="w-6 h-6"
@@ -481,7 +577,10 @@ onMounted(() => {
 
                 <!-- Loading State -->
                 <div v-if="loadingHourly" class="p-8 text-center">
-                    <div class="animate-pulse text-gray-300">
+                    <div
+                        class="animate-pulse"
+                        :style="{ color: textSecondaryColor }"
+                    >
                         Loading hourly forecast...
                     </div>
                 </div>
@@ -492,13 +591,23 @@ onMounted(() => {
                         <div
                             v-for="hour in hourlyData"
                             :key="hour.time"
-                            class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-200"
+                            class="rounded-lg p-3 transition-all duration-200"
+                            :style="{ backgroundColor: backgroundColor + '05' }"
+                            @mouseenter="
+                                $event.target.style.backgroundColor =
+                                    backgroundColor + '10'
+                            "
+                            @mouseleave="
+                                $event.target.style.backgroundColor =
+                                    backgroundColor + '05'
+                            "
                         >
                             <div class="flex items-center justify-between">
                                 <!-- Time & Weather -->
                                 <div class="flex items-center space-x-3">
                                     <div
-                                        class="text-cyan-400 font-medium text-sm min-w-[3rem]"
+                                        class="font-medium text-sm min-w-[3rem]"
+                                        :style="{ color: accentColor }"
                                     >
                                         {{ hour.time }}
                                     </div>
@@ -507,11 +616,17 @@ onMounted(() => {
                                     </div>
                                     <div>
                                         <div
-                                            class="text-white font-medium text-sm"
+                                            class="font-medium text-sm"
+                                            :style="{ color: textColor }"
                                         >
                                             {{ hour.temp }}°C
                                         </div>
-                                        <div class="text-gray-400 text-xs">
+                                        <div
+                                            class="text-xs"
+                                            :style="{
+                                                color: textSecondaryColor,
+                                            }"
+                                        >
                                             Feels {{ hour.feels_like }}°C
                                         </div>
                                     </div>
@@ -519,10 +634,16 @@ onMounted(() => {
 
                                 <!-- Weather details -->
                                 <div class="text-right">
-                                    <div class="text-gray-300 text-xs">
+                                    <div
+                                        class="text-xs"
+                                        :style="{ color: textSecondaryColor }"
+                                    >
                                         {{ hour.description }}
                                     </div>
-                                    <div class="text-cyan-300 text-xs">
+                                    <div
+                                        class="text-xs"
+                                        :style="{ color: accentColor }"
+                                    >
                                         {{ hour.pop }}% chance rain
                                     </div>
                                 </div>
@@ -530,7 +651,8 @@ onMounted(() => {
 
                             <!-- Additional info -->
                             <div
-                                class="mt-2 flex items-center justify-between text-xs text-gray-400"
+                                class="mt-2 flex items-center justify-between text-xs"
+                                :style="{ color: textSecondaryColor }"
                             >
                                 <span>Humidity: {{ hour.humidity }}%</span>
                                 <span>Wind: {{ hour.wind_speed }} km/h</span>

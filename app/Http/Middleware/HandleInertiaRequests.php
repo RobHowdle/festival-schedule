@@ -2,8 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
+use DB;
 use Inertia\Middleware;
+use Illuminate\Http\Request;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -37,12 +38,25 @@ class HandleInertiaRequests extends Middleware
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
                 : (object) [],
             'status' => fn() => $request->session()->get('status'),
-            
+
             'flash' => [
-                'message' => fn () => $request->session()->get('message'),
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'message' => fn() => $request->session()->get('message'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
             ],
+            'systemSettings' => function () {
+                return DB::table('system_settings')
+                    ->whereIn('key', [
+                        'color_primary',
+                        'color_secondary',
+                        'color_accent',
+                        'color_background',
+                        'color_text',
+                        'color_textSecondary'
+                    ])
+                    ->pluck('value', 'key')
+                    ->toArray();
+            }
         ]);
     }
 }

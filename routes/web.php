@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\Admin\ArtistController as AdminArtistController;
-use App\Http\Controllers\Admin\StageController as AdminStageController;
-use App\Http\Controllers\Admin\VendorController as AdminVendorController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\Admin\LayoutSettingsController;
+use App\Http\Controllers\Admin\StageController as AdminStageController;
+use App\Http\Controllers\Admin\ArtistController as AdminArtistController;
+use App\Http\Controllers\Admin\VendorController as AdminVendorController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -54,6 +55,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::resource('artists', AdminArtistController::class);
     Route::resource('stages', AdminStageController::class);
     Route::resource('vendors', AdminVendorController::class);
+
+    // Layout Settings
+    Route::get('/layout', [LayoutSettingsController::class, 'index'])->name('layout.index');
+    Route::post('/layout/colors', [LayoutSettingsController::class, 'updateColors'])->name('layout.colors.update');
+    Route::post('/layout/background', [LayoutSettingsController::class, 'updateLayout'])->name('layout.background');
+    Route::post('/layout/apply-palette', [LayoutSettingsController::class, 'applyColorPalette'])->name('layout.apply-palette');
+    Route::delete('/layout/palette', [LayoutSettingsController::class, 'deleteColorPalette'])->name('layout.delete-palette');
 });
 
 

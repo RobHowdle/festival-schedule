@@ -8,9 +8,51 @@ const sidebarOpen = ref(false);
 const particles = ref([]);
 const page = usePage();
 
+const props = defineProps({
+    expandedLayout: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 // Check if user is authenticated
 const isAuthenticated = computed(() => {
     return page.props.auth && page.props.auth.user;
+});
+
+// Get system settings
+const systemSettings = computed(() => {
+    return page.props.systemSettings || {};
+});
+
+// Compute background style
+const backgroundStyle = computed(() => {
+    const settings = systemSettings.value;
+
+    if (settings.background_type === "image" && settings.background_image) {
+        return {
+            background: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)), url('/storage/${settings.background_image}') center/cover no-repeat fixed`,
+        };
+    } else {
+        // Use color background
+        const bgColor = settings.background_color || "#1F2937";
+        return {
+            background: `linear-gradient(135deg, ${bgColor}e6, ${bgColor}cc)`,
+        };
+    }
+});
+
+// Compute CSS custom properties for colors
+const colorVariables = computed(() => {
+    const settings = systemSettings.value;
+    return {
+        "--color-primary": settings.color_primary || "#8B5CF6",
+        "--color-secondary": settings.color_secondary || "#06B6D4",
+        "--color-accent": settings.color_accent || "#F59E0B",
+        "--color-background": settings.color_background || "#1F2937",
+        "--color-text": settings.color_text || "#FFFFFF",
+        "--color-text-secondary": settings.color_textSecondary || "#9CA3AF",
+    };
 });
 
 const toggleSidebar = () => {
@@ -36,11 +78,7 @@ onMounted(() => {
 <template>
     <div
         class="min-h-screen"
-        style="
-            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)),
-                url('/images/timetable_background.png') center/cover no-repeat
-                    fixed;
-        "
+        :style="{ ...backgroundStyle, ...colorVariables }"
     >
         <!-- Navbar with glass effect -->
         <Navbar @toggle-sidebar="toggleSidebar" />
@@ -57,7 +95,7 @@ onMounted(() => {
                 <div class="space-y-1">
                     <Link
                         href="/"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/',
@@ -65,7 +103,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -81,7 +119,7 @@ onMounted(() => {
 
                     <Link
                         href="/schedule"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/schedule',
@@ -89,7 +127,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -107,7 +145,7 @@ onMounted(() => {
 
                     <Link
                         href="/artists"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/artists',
@@ -115,7 +153,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -131,7 +169,7 @@ onMounted(() => {
 
                     <Link
                         href="/my-artists"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/my-artists',
@@ -139,7 +177,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -155,7 +193,7 @@ onMounted(() => {
 
                     <Link
                         href="/stages"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/stages',
@@ -163,7 +201,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -181,7 +219,7 @@ onMounted(() => {
                     </Link>
                     <Link
                         href="/vendors"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/vendors',
@@ -189,7 +227,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -207,7 +245,7 @@ onMounted(() => {
 
                     <Link
                         href="/map"
-                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                        class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                         :class="{
                             'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                 $page.url === '/map',
@@ -215,7 +253,7 @@ onMounted(() => {
                         @click="sidebarOpen = false"
                     >
                         <svg
-                            class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                            class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -238,7 +276,7 @@ onMounted(() => {
                 ></div>
                 <Link
                     href="/wallpaper-generator"
-                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                     :class="{
                         'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                             $page.url === '/wallpaper-generator',
@@ -246,7 +284,7 @@ onMounted(() => {
                     @click="sidebarOpen = false"
                 >
                     <svg
-                        class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                        class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                     >
@@ -264,7 +302,7 @@ onMounted(() => {
 
                 <Link
                     href="/poster-generator"
-                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                    class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                     :class="{
                         'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                             $page.url === '/poster-generator',
@@ -272,7 +310,7 @@ onMounted(() => {
                     @click="sidebarOpen = false"
                 >
                     <svg
-                        class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                        class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                     >
@@ -298,7 +336,7 @@ onMounted(() => {
                     <template v-if="isAuthenticated">
                         <Link
                             href="/dashboard"
-                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                             :class="{
                                 'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                     $page.url === '/dashboard',
@@ -306,7 +344,7 @@ onMounted(() => {
                             @click="sidebarOpen = false"
                         >
                             <svg
-                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -322,16 +360,16 @@ onMounted(() => {
 
                         <Link
                             v-if="page.props.auth.user.is_admin"
-                            href="/admin-dashboard"
-                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            href="/admin/dashboard"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                             :class="{
                                 'bg-white/15 text-white shadow-lg backdrop-blur-sm':
-                                    $page.url === '/admin-dashboard',
+                                    $page.url === '/admin/dashboard',
                             }"
                             @click="sidebarOpen = false"
                         >
                             <svg
-                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -350,11 +388,11 @@ onMounted(() => {
                         <Link
                             href="/logout"
                             method="post"
-                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                             @click="sidebarOpen = false"
                         >
                             <svg
-                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -375,7 +413,7 @@ onMounted(() => {
                     <template v-else>
                         <Link
                             href="/register"
-                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                             :class="{
                                 'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                     $page.url === '/register',
@@ -383,7 +421,7 @@ onMounted(() => {
                             @click="sidebarOpen = false"
                         >
                             <svg
-                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -399,7 +437,7 @@ onMounted(() => {
 
                         <Link
                             href="/login"
-                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
+                            class="group flex items-center px-4 py-3 text-sm font-medium text-gray-200 rounded-xl hover:text-white hover:bg-white/10 hover:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 active:bg-white/15 transition-all duration-200"
                             :class="{
                                 'bg-white/15 text-white shadow-lg backdrop-blur-sm':
                                     $page.url === '/login',
@@ -407,7 +445,7 @@ onMounted(() => {
                             @click="sidebarOpen = false"
                         >
                             <svg
-                                class="w-5 h-5 mr-3 group-hover:text-cyan-400 transition-colors duration-200"
+                                class="w-5 h-5 mr-3 group-hover:text-secondary transition-colors duration-200"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -459,7 +497,11 @@ onMounted(() => {
                     }"
                 ></div>
             </div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div
+                class="mx-auto px-4 sm:px-6 lg:px-8 pt-8 transition-all duration-700 ease-out"
+                :class="props.expandedLayout ? 'max-w-none' : 'max-w-7xl'"
+                :style="props.expandedLayout ? 'max-width: 120rem;' : ''"
+            >
                 <slot />
             </div>
         </main>
@@ -482,7 +524,7 @@ onMounted(() => {
     position: absolute;
     width: 2px;
     height: 2px;
-    background: #00ffc3;
+    background: var(--color-secondary, #00ffc3);
     border-radius: 50%;
     animation: float-particle 8s infinite ease-in-out;
     opacity: 0.3;
@@ -498,5 +540,38 @@ onMounted(() => {
         opacity: 0.8;
         transform: translateY(0) translateX(50px) scale(1);
     }
+}
+
+/* Custom color classes that use CSS variables */
+.text-primary {
+    color: var(--color-primary);
+}
+
+.text-secondary {
+    color: var(--color-secondary);
+}
+
+.text-accent {
+    color: var(--color-accent);
+}
+
+.bg-primary {
+    background-color: var(--color-primary);
+}
+
+.bg-secondary {
+    background-color: var(--color-secondary);
+}
+
+.bg-accent {
+    background-color: var(--color-accent);
+}
+
+.border-primary {
+    border-color: var(--color-primary);
+}
+
+.ring-primary {
+    --tw-ring-color: var(--color-primary);
 }
 </style>

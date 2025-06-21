@@ -9,7 +9,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken; 
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
 use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
@@ -24,14 +24,13 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 // --- CUSTOM APPLICATION MIDDLEWARE IMPORTS ---
 use App\Http\Middleware\CheckCustomMaintenanceMode;
-use App\Http\Middleware\AdminMiddleware; 
-
-
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ShareSystemSettings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -45,14 +44,15 @@ return Application::configure(basePath: dirname(__DIR__))
             TrimStrings::class,             // Trims string input data
             ConvertEmptyStringsToNull::class, // Converts empty strings to null
 
-            CheckCustomMaintenanceMode::class, 
-            
-            AuthenticateSession::class, 
+            CheckCustomMaintenanceMode::class,
 
-            HandleInertiaRequests::class,            
-            AddLinkHeadersForPreloadedAssets::class, 
+            AuthenticateSession::class,
 
-            SubstituteBindings::class, 
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
+
+            SubstituteBindings::class,
+            ShareSystemSettings::class,
         ]);
 
 
