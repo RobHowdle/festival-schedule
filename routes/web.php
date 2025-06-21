@@ -47,6 +47,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
+    Route::get('/artists/api', [AdminArtistController::class, 'apiIndex'])->name('artists.api');
+
+    Route::get('/stages/api', [AdminStageController::class, 'apiIndex'])->name('stages.api');
+
     Route::resource('artists', AdminArtistController::class);
     Route::resource('stages', AdminStageController::class);
     Route::resource('vendors', AdminVendorController::class);

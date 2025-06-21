@@ -3,6 +3,7 @@ import MainLayout from "@/Layouts/MainLayout.vue";
 import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
 import axios from 'axios';
+import { debounce } from 'lodash';
 
 const props = defineProps({
     users_count: Number,
@@ -31,7 +32,6 @@ const artistForm = useForm({
     description: "",
     genre: "",
     image_url: "",
-    website: "",
     social_links: "",
 });
 
@@ -152,9 +152,20 @@ const showUserManagement = () => {
 
 const backToDashboard = () => {
     currentAdminView.value = 'dashboard';
+    searchTerm.value = '';
+    usersData.value = [];
+    selectedUser.value = null;
+    userForm.reset();
+    artistsData.value = [];
+    artistSearchTerm.value = '';
+    selectedArtist.value = null;
+    artistEditForm.reset();
+    stagesData.value = [];
+    selectedStage.value = null;
+    stageEditForm.reset();
 };
 
-const selectedUser = ref(null); // Stores the user object being edited
+const selectedUser = ref(null);
 
 // Form for editing user data. Initialize with empty values, then populate from selectedUser.
 const userForm = useForm({
@@ -163,8 +174,8 @@ const userForm = useForm({
     email: '',
     is_admin: false,
     is_dev: false,
-    password: '', // For password change if desired
-    password_confirmation: '', // For password change confirmation
+    password: '',
+    password_confirmation: '',
 });
 
 // Watch selectedUser and populate userForm when it changes
@@ -175,25 +186,25 @@ watch(selectedUser, (newUser) => {
         userForm.email = newUser.email;
         userForm.is_admin = newUser.is_admin;
         userForm.is_dev = newUser.is_dev;
-        userForm.password = ''; // Clear password fields when a new user is selected
+        userForm.password = '';
         userForm.password_confirmation = '';
-        userForm.clearErrors(); // Clear any previous errors
+        userForm.clearErrors();
     } else {
-        userForm.reset(); // Reset form if no user is selected
+        userForm.reset();
     }
 }, { immediate: true }); // Run immediately if selectedUser has an initial value
 
 // Function to handle clicking on a user in the list
 const editUser = (user) => {
-    selectedUser.value = user; // Set the user to be edited
-    currentAdminView.value = 'userEdit'; // Change to the edit view
+    selectedUser.value = user;
+    currentAdminView.value = 'userEdit';
 };
 
 // Function to handle "Back" or "Cancel" from user edit form
 const backToUserList = () => {
-    currentAdminView.value = 'userList'; // Go back to the user list
-    selectedUser.value = null; // Clear selected user
-    userForm.reset(); // Reset the form
+    currentAdminView.value = 'userList';
+    selectedUser.value = null;
+    userForm.reset();
     fetchUsers();
 };
 
@@ -202,11 +213,9 @@ const submitUserUpdate = () => {
     const routeName = 'admin.users.update';
 
     userForm.patch(route(routeName, { user: selectedUser.value.id }), {
-        // Preserve scroll behavior
         preserveScroll: true,
 
         onSuccess: (page) => {
-            // Trigger the transition back to the user list AND re-fetch the updated list
             backToUserList();
 
             // Check for and display a flash message if provided by Laravel
@@ -221,6 +230,208 @@ const submitUserUpdate = () => {
             // userForm.errors will automatically be populated by Inertia
         },
     });
+};
+
+const artistsData = ref([]);
+const artistSearchTerm = ref('');
+const loadingArtists = ref(false);
+
+const fetchArtists = async () => {
+    loadingArtists.value = true;
+    try {
+        const response = await axios.get(route('admin.artists.api', { search: artistSearchTerm.value }));
+        artistsData.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch artists:", error);
+    } finally {
+        loadingArtists.value = false;
+    }
+};
+
+const filteredArtists = computed(() => {
+    if (!artistSearchTerm.value) {
+        return artistsData.value;
+    }
+    const lowerSearch = artistSearchTerm.value.toLowerCase();
+    return artistsData.value.filter(artist =>
+        artist.name.toLowerCase().includes(lowerSearch) ||
+        (artist.genre && artist.genre.toLowerCase().includes(lowerSearch)) ||
+        (artist.description && artist.description.toLowerCase().includes(lowerSearch)))
+});
+
+const showArtistManagement = () => {
+    currentAdminView.value = 'artistList';
+    fetchArtists();
+};
+
+const selectedArtist = ref(null);
+
+// Form for editing artist data. Distinct from artistForm (used for creation modal)
+const artistEditForm = useForm({
+    id: null,
+    name: '',
+    slug: '',
+    description: '',
+    genre: '',
+    image_url: '',
+    social_links: '',
+});
+
+// Watch selectedArtist and populate artistEditForm when it changes
+watch(selectedArtist, (newArtist) => {
+    if (newArtist) {
+        artistEditForm.id = newArtist.id;
+        artistEditForm.name = newArtist.name;
+        artistEditForm.slug = newArtist.slug;
+        artistEditForm.description = newArtist.description;
+        artistEditForm.genre = newArtist.genre;
+        artistEditForm.image_url = newArtist.image_url;
+        artistEditForm.social_links = newArtist.social_links ? newArtist.social_links.join(', ') : '';
+        artistEditForm.clearErrors();
+    } else {
+        artistEditForm.reset();
+    }
+}, { immediate: true }); // Run immediately if selectedArtist has an initial value
+
+// Function to handle clicking on an artist in the list
+const editArtist = (artist) => {
+    selectedArtist.value = artist;
+    currentAdminView.value = 'artistEdit';
+};
+
+// Function to generate slug on input change (debounced for performance)
+const generateSlug = debounce(() => {
+    if (artistEditForm.name) {
+        // Simple client-side slug generation (Laravel backend will confirm/adjust uniqueness)
+        artistEditForm.slug = artistEditForm.name.toLowerCase()
+                                .replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+                                .replace(/\s+/g, '-')       // collapse whitespace and replace by -
+                                .replace(/-+/g, '-');       // collapse dashes
+    } else {
+        artistEditForm.slug = '';
+    }
+}, 300); // Debounce by 300ms
+
+// Function to submit artist update
+const submitArtistUpdate = () => {
+    const routeName = 'admin.artists.update';
+
+    // Convert social_links string to array for backend
+    const socialLinksArray = artistEditForm.social_links
+                                ? artistEditForm.social_links.split(',').map(link => link.trim()).filter(link => link.length > 0)
+                                : [];
+
+    // Send patch request with modified social_links
+    artistEditForm.patch(route(routeName, { artist: selectedArtist.value.id }), {
+        data: {
+            ...artistEditForm.data(),
+            social_links: socialLinksArray,
+        },
+        onSuccess: (page) => {
+            backToArtistList();
+            // Display success message if Laravel flashed one
+            if (page.props.flash && page.props.flash.message) {
+                console.log("Artist update success:", page.props.flash.message);
+            }
+        },
+        onError: (errors) => {
+            console.error("Artist update errors:", errors);
+        },
+        preserveScroll: true,
+    });
+};
+
+// Function to handle "Cancel" from artist edit form (or back from detail)
+const backToArtistList = () => {
+    currentAdminView.value = 'artistList';
+    selectedArtist.value = null;
+    artistEditForm.reset();
+    fetchArtists();
+};
+
+const stagesData = ref([]);
+const loadingStages = ref(false);
+
+const fetchStages = async () => {
+    loadingStages.value = true;
+    try {
+        const response = await axios.get(route('admin.stages.api'));
+        stagesData.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch stages:", error);
+    } finally {
+        loadingStages.value = false;
+    }
+};
+
+const filteredStages = computed(() => {
+    return stagesData.value;
+});
+
+// Function to switch to Stage List view
+const showStageManagement = () => {
+    currentAdminView.value = 'stageList';
+    fetchStages();
+};
+
+const selectedStage = ref(null); // Stores the stage object being edited
+
+// Form for editing stage data. Distinct from stageForm (used for creation modal)
+const stageEditForm = useForm({
+    id: null,
+    name: '',
+    location: '',
+    w3w_link: '',
+    capacity: null,
+    type: '',
+});
+
+// Watch selectedStage and populate stageEditForm when it changes
+watch(selectedStage, (newStage) => {
+    if (newStage) {
+        stageEditForm.id = newStage.id;
+        stageEditForm.name = newStage.name;
+        stageEditForm.location = newStage.location;
+        stageEditForm.w3w_link = newStage.w3w_link;
+        stageEditForm.capacity = newStage.capacity;
+        stageEditForm.type = newStage.type;
+        stageEditForm.clearErrors();
+    } else {
+        stageEditForm.reset();
+    }
+}, { immediate: true }); // Run immediately if selectedStage has an initial value
+
+// Function to handle clicking on a stage in the list
+const editStage = (stage) => {
+    selectedStage.value = stage;
+    currentAdminView.value = 'stageEdit';
+};
+
+// Function to submit stage update
+const submitStageUpdate = () => {
+    const routeName = 'admin.stages.update';
+
+    stageEditForm.patch(route(routeName, { stage: selectedStage.value.id }), {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            backToStageList();
+            // Display success message if Laravel flashed one
+            if (page.props.flash && page.props.flash.message) {
+                console.log("Stage update success:", page.props.flash.message);
+            }
+        },
+        onError: (errors) => {
+            console.error("Stage update errors:", errors);
+        },
+    });
+};
+
+// Function to handle "Back" or "Cancel" from stage edit form
+const backToStageList = () => {
+    currentAdminView.value = 'stageList';
+    selectedStage.value = null;
+    stageEditForm.reset();
+    fetchStages();
 };
 </script>
 
@@ -469,9 +680,9 @@ const submitUserUpdate = () => {
                   </button>
 
                   <!-- Artists Management -->
-                  <Link
-                    href="/admin/artists"
-                    class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200"
+                  <button
+                    @click="showArtistManagement"
+                    class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200 w-full text-left"
                   >
                     <div class="flex items-center">
                       <div
@@ -505,7 +716,7 @@ const submitUserUpdate = () => {
                         clip-rule="evenodd"
                       />
                     </svg>
-                  </Link>
+                  </button>
 
                   <!-- Vendors Management -->
                   <Link
@@ -549,9 +760,9 @@ const submitUserUpdate = () => {
                   </Link>
 
                   <!-- Stages Management -->
-                  <Link
-                    href="/admin/stages"
-                    class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200"
+                  <button
+                    @click="showStageManagement"
+                    class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200 w-full text-left"
                   >
                     <div class="flex items-center">
                       <div
@@ -587,7 +798,7 @@ const submitUserUpdate = () => {
                         clip-rule="evenodd"
                       />
                     </svg>
-                  </Link>
+                  </button>
                 </div>
               </div>
 
@@ -852,7 +1063,7 @@ const submitUserUpdate = () => {
                   v-model="searchTerm"
                   @input="fetchUsers"
                   type="text"
-                  placeholder="SEARCH"
+                  placeholder="SEARCH USERS"
                   class="flex-1 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
                 />
               </div>
@@ -1157,6 +1368,491 @@ const submitUserUpdate = () => {
                       leave-active-class="duration-150"
                     >
                       <span v-if="!userForm.processing" key="save"> Save </span>
+                      <span
+                        v-else
+                        key="saving"
+                        class="flex items-center justify-center"
+                      >
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Saving...
+                      </span>
+                    </Transition>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div
+            v-else-if="currentAdminView === 'artistList'"
+            key="artist-list-view"
+          >
+            <div
+              class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+            >
+              <!-- Header with Back Button and Search Input -->
+              <div class="flex items-center mb-6">
+                <button
+                  @click="backToDashboard"
+                  class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                  aria-label="Back to Dashboard"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    ></path>
+                  </svg>
+                </button>
+                <input
+                  v-model="artistSearchTerm"
+                  @input="fetchArtists"
+                  type="text"
+                  placeholder="SEARCH ARTISTS"
+                  class="flex-1 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200"
+                />
+              </div>
+
+              <!-- Artist List Area -->
+              <div
+                class="artist-list-area max-h-[calc(100vh-250px)] overflow-y-auto pr-2"
+              >
+                <div
+                  v-if="loadingArtists"
+                  class="text-center py-8 text-gray-400"
+                >
+                  <svg
+                    class="animate-spin h-8 w-8 text-purple-400 mx-auto mb-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Loading artists...
+                </div>
+
+                <div
+                  v-else-if="filteredArtists.length === 0"
+                  class="text-center py-8 text-gray-400"
+                >
+                  No artists found.
+                </div>
+
+                <div v-else class="space-y-4">
+                  <!-- Artist List Items -->
+                  <button
+                    v-for="(artist, index) in filteredArtists"
+                    :key="artist.id || 'artist-' + index"
+                    @click="editArtist(artist)"
+                    class="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 w-full text-left transition-colors duration-200"
+                  >
+                    <div class="flex items-center">
+                      <div class="p-2 rounded-full bg-purple-500/20">
+                        <svg
+                          class="w-5 h-5 text-purple-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"
+                          />
+                        </svg>
+                      </div>
+                      <div class="ml-3">
+                        <h4 class="text-white font-medium">
+                          {{ artist.name }}
+                        </h4>
+                        <p class="text-gray-400 text-sm">
+                          {{ artist.genre }}
+                          <span
+                            v-if="artist.image_url"
+                            class="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-full"
+                            >Image</span
+                          >
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-else-if="currentAdminView === 'stageList'"
+            key="stage-list-view"
+          >
+            <div
+              class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+            >
+              <div class="flex items-center mb-6">
+                <button
+                  @click="backToDashboard"
+                  class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                  aria-label="Back to Dashboard"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div
+                class="stage-list-area max-h-[calc(100vh-250px)] overflow-y-auto pr-2"
+              >
+                <div
+                  v-if="loadingStages"
+                  class="text-center py-8 text-gray-400"
+                >
+                  <svg
+                    class="animate-spin h-8 w-8 text-green-400 mx-auto mb-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Loading stages...
+                </div>
+
+                <div
+                  v-else-if="filteredStages.length === 0"
+                  class="text-center py-8 text-gray-400"
+                >
+                  No stages found.
+                </div>
+
+                <div v-else class="space-y-4">
+                  <button
+                    v-for="(stage, index) in filteredStages"
+                    :key="stage.id || 'stage-' + index"
+                    @click="editStage(stage)"
+                    class="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 w-full text-left transition-colors duration-200"
+                  >
+                    <div class="flex items-center">
+                      <div class="p-2 rounded-full bg-green-500/20">
+                        <svg
+                          class="w-5 h-5 text-green-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div class="ml-3">
+                        <h4 class="text-white font-medium">
+                          {{ stage.name }}
+                        </h4>
+                        <p class="text-gray-400 text-sm">
+                          {{ stage.location }}
+                          <span
+                            v-if="stage.type"
+                            class="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full capitalize"
+                            >{{ stage.type }}</span
+                          >
+                          <span
+                            v-if="stage.capacity"
+                            class="ml-2 px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded-full"
+                            >{{ stage.capacity }} Cap.</span
+                          >
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-else-if="currentAdminView === 'stageEdit'"
+            key="stage-edit-view"
+          >
+            <div
+              class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+            >
+              <!-- Header with Back Button and Stage Name -->
+              <div class="flex items-center mb-6">
+                <button
+                  @click="backToStageList"
+                  class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                  aria-label="Back to Stage List"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    ></path>
+                  </svg>
+                </button>
+                <h3 class="text-xl font-bold text-white capitalize">
+                  {{ selectedStage ? selectedStage.name : 'Stage' }}
+                </h3>
+              </div>
+
+              <!-- Stage Edit Form -->
+              <form @submit.prevent="submitStageUpdate" class="space-y-4">
+                <!-- Name Field -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-200 mb-2"
+                    >Stage Name</label
+                  >
+                  <input
+                    v-model="stageEditForm.name"
+                    type="text"
+                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
+                    required
+                  />
+                  <Transition
+                    enter-active-class="duration-200 ease-out"
+                    enter-from-class="opacity-0 translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-1"
+                  >
+                    <div
+                      v-if="stageEditForm.errors.name"
+                      class="mt-1 text-sm text-red-400"
+                    >
+                      {{ stageEditForm.errors.name }}
+                    </div>
+                  </Transition>
+                </div>
+
+                <!-- Location Field -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-200 mb-2"
+                    >Location</label
+                  >
+                  <input
+                    v-model="stageEditForm.location"
+                    type="text"
+                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
+                    placeholder="e.g., Main Field, Arena"
+                  />
+                  <Transition
+                    enter-active-class="duration-200 ease-out"
+                    enter-from-class="opacity-0 translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-1"
+                  >
+                    <div
+                      v-if="stageEditForm.errors.location"
+                      class="mt-1 text-sm text-red-400"
+                    >
+                      {{ stageEditForm.errors.location }}
+                    </div>
+                  </Transition>
+                </div>
+
+                <!-- W3W Link Field -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-200 mb-2"
+                    >What3Words Link</label
+                  >
+                  <input
+                    v-model="stageEditForm.w3w_link"
+                    type="url"
+                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
+                    placeholder="https://what3words.com/word.word.word"
+                  />
+                  <Transition
+                    enter-active-class="duration-200 ease-out"
+                    enter-from-class="opacity-0 translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-1"
+                  >
+                    <div
+                      v-if="stageEditForm.errors.w3w_link"
+                      class="mt-1 text-sm text-red-400"
+                    >
+                      {{ stageEditForm.errors.w3w_link }}
+                    </div>
+                  </Transition>
+                </div>
+
+                <!-- Capacity Field -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-200 mb-2"
+                    >Capacity</label
+                  >
+                  <input
+                    v-model="stageEditForm.capacity"
+                    type="number"
+                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
+                    placeholder="e.g., 50000"
+                  />
+                  <Transition
+                    enter-active-class="duration-200 ease-out"
+                    enter-from-class="opacity-0 translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-1"
+                  >
+                    <div
+                      v-if="stageEditForm.errors.capacity"
+                      class="mt-1 text-sm text-red-400"
+                    >
+                      {{ stageEditForm.errors.capacity }}
+                    </div>
+                  </Transition>
+                </div>
+
+                <!-- Stage Type Field (Select Dropdown) -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-200 mb-2"
+                    >Stage Type</label
+                  >
+                  <select
+                    v-model="stageEditForm.type"
+                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
+                  >
+                    <option value="">Select type</option>
+                    <option value="open_air">Open Air Stage</option>
+                    <option value="tent">Tent Stage</option>
+                    <option value="indoor">Indoor Stage</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <Transition
+                    enter-active-class="duration-200 ease-out"
+                    enter-from-class="opacity-0 translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-1"
+                  >
+                    <div
+                      v-if="stageEditForm.errors.type"
+                      class="mt-1 text-sm text-red-400"
+                    >
+                      {{ stageEditForm.errors.type }}
+                    </div>
+                  </Transition>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    @click="backToStageList"
+                    class="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-medium rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="stageEditForm.processing"
+                    class="flex-1 py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:hover:scale-100"
+                  >
+                    <Transition
+                      mode="out-in"
+                      enter-active-class="duration-150"
+                      leave-active-class="duration-150"
+                    >
+                      <span v-if="!stageEditForm.processing" key="save">
+                        Save Changes
+                      </span>
                       <span
                         v-else
                         key="saving"
