@@ -86,13 +86,11 @@ class UserController extends Controller
         $user->is_admin = $validatedData['is_admin'];
         $user->is_dev = $validatedData['is_dev'];
 
-        // --- CRUCIAL CHANGE FOR PASSWORD ---
         // Only update the password if a new one was actually provided in the request
         // (i.e., it passed the 'nullable' validation but was not empty)
         if ($request->filled('password')) { // <-- Use $request->filled() for robustness
             $user->password = Hash::make($validatedData['password']);
         }
-        // --- END CRUCIAL CHANGE ---
 
         $user->save();
 

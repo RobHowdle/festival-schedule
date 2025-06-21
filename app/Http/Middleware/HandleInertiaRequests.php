@@ -36,15 +36,13 @@ class HandleInertiaRequests extends Middleware
             'errors' => fn() => $request->session()->get('errors')
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
                 : (object) [],
-            'status' => fn() => $request->session()->get('status'), // This is often used by Breeze itself for global status
+            'status' => fn() => $request->session()->get('status'),
             
-            // --- ADD THIS 'flash' BLOCK ---
             'flash' => [
-                'message' => fn () => $request->session()->get('message'), // For general ->with('message', '...')
-                'success' => fn () => $request->session()->get('success'), // If you use ->with('success', '...')
-                'error' => fn () => $request->session()->get('error'),     // If you use ->with('error', '...')
+                'message' => fn () => $request->session()->get('message'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
-            // --- END 'flash' BLOCK ---
         ]);
     }
 }

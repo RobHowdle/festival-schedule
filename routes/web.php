@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\VendorController as AdminVendorController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Api\UserController; // Make sure this is imported!
+use App\Http\Controllers\Api\UserController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -34,9 +34,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Admin routes group (This is your existing group)
+// Admin routes group
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard (accessible as /admin/dashboard)
+
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/users/api', [UserController::class, 'index'])->name('users.api');
