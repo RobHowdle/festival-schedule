@@ -1527,6 +1527,143 @@ const backToStageList = () => {
               </div>
             </div>
           </div>
+          <div v-else-if="currentAdminView === 'artistEdit'" key="artist-edit-view">
+                        <div
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+                        >
+                            <!-- Header with Back Button and Artist Name -->
+                            <div class="flex items-center mb-6">
+                                <button
+                                    @click="backToArtistList"
+                                    class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                                    aria-label="Back to Artist List"
+                                >
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                </button>
+                                <h3 class="text-xl font-bold text-white capitalize">
+                                    {{ selectedArtist ? selectedArtist.name : 'Artist' }}
+                                </h3>
+                            </div>
+
+                            <!-- Artist Edit Form -->
+                            <form @submit.prevent="submitArtistUpdate" class="space-y-4">
+                                <!-- Name Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Artist Name</label>
+                                    <input
+                                        v-model="artistEditForm.name"
+                                        @input="generateSlug"
+                                        type="text"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200"
+                                        required
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.name" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.name }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Slug Field (Read-only/Hidden usually, for admin visibility) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Slug</label>
+                                    <input
+                                        v-model="artistEditForm.slug"
+                                        type="text"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-gray-400 cursor-not-allowed focus:outline-none"
+                                        readonly
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.slug" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.slug }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Genre Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Genre</label>
+                                    <input
+                                        v-model="artistEditForm.genre"
+                                        type="text"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200"
+                                        placeholder="e.g., Rock, Metal, Pop"
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.genre" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.genre }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Description Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Description</label>
+                                    <textarea
+                                        v-model="artistEditForm.description"
+                                        rows="4"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200 resize-none"
+                                        placeholder="Brief description of the artist"
+                                    ></textarea>
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.description" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.description }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Image URL Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Artist Image URL</label>
+                                    <input
+                                        v-model="artistEditForm.image_url"
+                                        type="url"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200"
+                                        placeholder="https://example.com/artist-image.jpg"
+                                    />
+                                    <p class="mt-1 text-xs text-gray-400">Optional: Link to artist's profile image or promotional photo</p>
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.image_url" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.image_url }}</div>
+                                    </Transition>
+                                </div>
+                                <!-- Social Media Links Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Social Media Links</label>
+                                    <textarea
+                                        v-model="artistEditForm.social_links"
+                                        rows="3"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all duration-200 resize-none"
+                                        placeholder="https://facebook.com/artist, https://instagram.com/artist, https://twitter.com/artist"
+                                    ></textarea>
+                                    <p class="mt-1 text-xs text-gray-400">Separate multiple links with commas. Include full URLs (https://...)</p>
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="artistEditForm.errors.social_links" class="mt-1 text-sm text-red-400">{{ artistEditForm.errors.social_links }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        @click="backToArtistList"
+                                        class="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-medium rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        :disabled="artistEditForm.processing"
+                                        class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:hover:scale-100"
+                                    >
+                                        <Transition mode="out-in" enter-active-class="duration-150" leave-active-class="duration-150">
+                                            <span v-if="!artistEditForm.processing" key="save">
+                                                Save Changes
+                                            </span>
+                                            <span v-else key="saving" class="flex items-center justify-center">
+                                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Saving...
+                                            </span>
+                                        </Transition>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
           <div
             v-else-if="currentAdminView === 'stageList'"
             key="stage-list-view"
