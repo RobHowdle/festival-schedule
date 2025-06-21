@@ -2,32 +2,6 @@
     <Head title="Layout Settings" />
 
     <MainLayout :expanded-layout="showLivePreview">
-        <template #header>
-            <div class="flex items-center">
-                <Link
-                    href="/admin/dashboard"
-                    class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
-                >
-                    <svg
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                        ></path>
-                    </svg>
-                </Link>
-                <h2 class="text-xl font-semibold leading-tight text-white">
-                    Layout Settings
-                </h2>
-            </div>
-        </template>
-
         <div class="py-12">
             <div
                 class="px-4 sm:px-6 lg:px-8 transition-all duration-700 ease-out"
@@ -36,6 +10,35 @@
                 "
                 :style="showLivePreview ? 'max-width: 120rem;' : ''"
             >
+                <!-- Header with Back Button -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center">
+                        <Link
+                            href="/admin/dashboard"
+                            class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                            aria-label="Back to Dashboard"
+                        >
+                            <svg
+                                class="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                ></path>
+                            </svg>
+                        </Link>
+                        <h1 class="text-3xl font-bold text-white">
+                            Layout Settings
+                        </h1>
+                    </div>
+                </div>
+
                 <div
                     :class="[
                         'grid gap-8 transition-all duration-700 ease-out',
@@ -750,6 +753,8 @@ const props = defineProps({
 
 const page = usePage();
 
+const currentAdminView = ref("dashboard");
+
 // Live preview state
 const showLivePreview = ref(false);
 const imagePreview = ref(null);
@@ -762,7 +767,7 @@ const backgroundForm = useForm({
     remove_background: false,
 });
 
-// Color form
+// Color form - simplified
 const colorForm = useForm({
     name: "",
 });
@@ -814,13 +819,12 @@ const previewBackgroundStyles = computed(() => {
     }
 });
 
+// Simple update preview function
 const updatePreview = () => {
-    if (showLivePreview.value) {
-        Object.assign(previewColors, colorForm.colors);
-    }
+    // This function can be used for future preview updates if needed
 };
 
-// Single save function
+// Single save function - this is the one that works
 const saveColors = () => {
     const formData = {
         palette_name:
@@ -851,80 +855,6 @@ const toggleLivePreview = () => {
     if (showLivePreview.value) {
         resetPreview();
     }
-};
-
-// Update the saveColorPalette function
-const saveColorPalette = () => {
-    // Transform the flat colorForm to match controller expectations
-    const formData = {
-        palette_name: colorForm.name,
-        colors: {
-            primary: colorForm.primary,
-            secondary: colorForm.secondary,
-            accent: colorForm.accent,
-            background: colorForm.background,
-            text: colorForm.text,
-            textSecondary: colorForm.textSecondary,
-        },
-        apply_immediately: false, // Just save, don't apply
-    };
-
-    router.post("/admin/layout/colors", formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            colorForm.reset("name");
-        },
-    });
-};
-
-// Update the applyColors function
-const applyColors = () => {
-    // Transform the flat colorForm to match controller expectations
-    const formData = {
-        palette_name: colorForm.name,
-        colors: {
-            primary: colorForm.primary,
-            secondary: colorForm.secondary,
-            accent: colorForm.accent,
-            background: colorForm.background,
-            text: colorForm.text,
-            textSecondary: colorForm.textSecondary,
-        },
-        apply_immediately: true, // Save and apply
-    };
-
-    router.post("/admin/layout/colors", formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            colorForm.reset("name");
-            // Update current system colors for preview
-            resetPreview();
-        },
-    });
-};
-
-// Update applyPreviewColors function
-const applyPreviewColors = () => {
-    // Copy preview colors to color form and apply immediately
-    const formData = {
-        palette_name: "Preview Applied " + new Date().toLocaleTimeString(),
-        colors: {
-            primary: previewColors.primary,
-            secondary: previewColors.secondary,
-            accent: previewColors.accent,
-            background: previewColors.background,
-            text: previewColors.text,
-            textSecondary: previewColors.textSecondary,
-        },
-        apply_immediately: true,
-    };
-
-    router.post("/admin/layout/colors", formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            resetPreview();
-        },
-    });
 };
 
 // File upload handlers
@@ -964,24 +894,6 @@ const updateBackground = () => {
             }
         },
     });
-};
-
-const loadPalette = (palette) => {
-    colorForm.palette_name = palette.name;
-    Object.keys(colorForm.colors).forEach((key) => {
-        if (palette[key]) {
-            colorForm.colors[key] = palette[key];
-        }
-    });
-    updatePreview();
-};
-
-const deletePalette = (paletteName) => {
-    if (confirm("Are you sure you want to delete this color palette?")) {
-        useForm({ palette_name: paletteName }).delete("/admin/layout/palette", {
-            preserveScroll: true,
-        });
-    }
 };
 </script>
 

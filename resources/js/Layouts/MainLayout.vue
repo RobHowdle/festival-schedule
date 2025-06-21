@@ -483,28 +483,39 @@ onMounted(() => {
         </Transition>
 
         <!-- Main content - full width -->
-        <main class="min-h-screen text-white">
-            <!-- Floating particles background -->
-            <div class="particles">
+        <Transition
+            name="page"
+            mode="out-in"
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 translate-y-4"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-4"
+        >
+            <main class="min-h-screen text-white">
+                <!-- Floating particles background -->
+                <div class="particles">
+                    <div
+                        v-for="particle in particles"
+                        :key="particle.id"
+                        class="particle"
+                        :style="{
+                            left: particle.left + '%',
+                            animationDelay: particle.animationDelay + 's',
+                            animationDuration: particle.animationDuration + 's',
+                        }"
+                    ></div>
+                </div>
                 <div
-                    v-for="particle in particles"
-                    :key="particle.id"
-                    class="particle"
-                    :style="{
-                        left: particle.left + '%',
-                        animationDelay: particle.animationDelay + 's',
-                        animationDuration: particle.animationDuration + 's',
-                    }"
-                ></div>
-            </div>
-            <div
-                class="mx-auto px-4 sm:px-6 lg:px-8 pt-8 transition-all duration-700 ease-out"
-                :class="props.expandedLayout ? 'max-w-none' : 'max-w-7xl'"
-                :style="props.expandedLayout ? 'max-width: 120rem;' : ''"
-            >
-                <slot />
-            </div>
-        </main>
+                    class="mx-auto px-4 sm:px-6 lg:px-8 pt-8 transition-all duration-700 ease-out"
+                    :class="props.expandedLayout ? 'max-w-none' : 'max-w-7xl'"
+                    :style="props.expandedLayout ? 'max-width: 120rem;' : ''"
+                >
+                    <slot />
+                </div>
+            </main>
+        </Transition>
     </div>
 </template>
 
