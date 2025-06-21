@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Add cursor pointer to all links and buttons */
+a, button, [role="button"] {
+    cursor: pointer;
+}
+
+/* Ensure disabled buttons don't show pointer cursor */
+button:disabled, [role="button"]:disabled {
+    cursor: not-allowed;
+}
