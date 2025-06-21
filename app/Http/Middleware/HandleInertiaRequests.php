@@ -29,14 +29,22 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return array_merge(parent::share($request), [ // Use array_merge to ensure parent::share() props are included
+        return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user() ? $request->user()->only('id', 'name', 'email', 'is_admin', 'is_dev') : null, // Good practice to limit user data
+                'user' => $request->user() ? $request->user()->only('id', 'name', 'email', 'is_admin', 'is_dev') : null,
             ],
             'errors' => fn() => $request->session()->get('errors')
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
-                : (object) [], // Pass an empty object if no errors
-            'status' => fn() => $request->session()->get('status'), // For general success/info messages
+                : (object) [],
+            'status' => fn() => $request->session()->get('status'), // This is often used by Breeze itself for global status
+            
+            // --- ADD THIS 'flash' BLOCK ---
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'), // For general ->with('message', '...')
+                'success' => fn () => $request->session()->get('success'), // If you use ->with('success', '...')
+                'error' => fn () => $request->session()->get('error'),     // If you use ->with('error', '...')
+            ],
+            // --- END 'flash' BLOCK ---
         ]);
     }
 }

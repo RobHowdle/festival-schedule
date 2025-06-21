@@ -1,7 +1,8 @@
 <script setup>
 import MainLayout from "@/Layouts/MainLayout.vue";
 import { Head, Link, useForm, router } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
+import axios from 'axios';
 
 const props = defineProps({
     users_count: Number,
@@ -17,6 +18,8 @@ const counts = ref({
     vendors: props.vendors_count,
     stages: props.stages_count,
 });
+
+const currentAdminView = ref('dashboard');
 
 // Modal state
 const showModal = ref(false);
@@ -112,6 +115,113 @@ const submitVendor = () => {
         },
     });
 };
+
+const usersData = ref([]);
+const searchTerm = ref('');
+const loadingUsers = ref(false);
+
+const fetchUsers = async () => {
+    loadingUsers.value = true;
+    try {
+        const response = await axios.get(route('admin.users.api', { search: searchTerm.value })); // Use route() helper
+        usersData.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch users:", error);
+        // Handle error display to the user if needed
+    } finally {
+        loadingUsers.value = false;
+    }
+};
+
+// Computed property for reactive search
+const filteredUsers = computed(() => {
+    if (!searchTerm.value) {
+        return usersData.value;
+    }
+    const lowerSearch = searchTerm.value.toLowerCase();
+    return usersData.value.filter(user => 
+        user.name.toLowerCase().includes(lowerSearch) ||
+        user.email.toLowerCase().includes(lowerSearch)
+    );
+});
+
+const showUserManagement = () => {
+    currentAdminView.value = 'userList';
+    fetchUsers();
+};
+
+const backToDashboard = () => {
+    currentAdminView.value = 'dashboard';
+};
+
+const selectedUser = ref(null); // Stores the user object being edited
+
+// Form for editing user data. Initialize with empty values, then populate from selectedUser.
+const userForm = useForm({
+    id: null,
+    name: '',
+    email: '',
+    is_admin: false,
+    is_dev: false,
+    password: '', // For password change if desired
+    password_confirmation: '', // For password change confirmation
+});
+
+// Watch selectedUser and populate userForm when it changes
+watch(selectedUser, (newUser) => {
+    if (newUser) {
+        userForm.id = newUser.id;
+        userForm.name = newUser.name;
+        userForm.email = newUser.email;
+        userForm.is_admin = newUser.is_admin;
+        userForm.is_dev = newUser.is_dev;
+        userForm.password = ''; // Clear password fields when a new user is selected
+        userForm.password_confirmation = '';
+        userForm.clearErrors(); // Clear any previous errors
+    } else {
+        userForm.reset(); // Reset form if no user is selected
+    }
+}, { immediate: true }); // Run immediately if selectedUser has an initial value
+
+// Function to handle clicking on a user in the list
+const editUser = (user) => {
+    selectedUser.value = user; // Set the user to be edited
+    currentAdminView.value = 'userEdit'; // Change to the edit view
+};
+
+// Function to handle "Back" or "Cancel" from user edit form
+const backToUserList = () => {
+    currentAdminView.value = 'userList'; // Go back to the user list
+    selectedUser.value = null; // Clear selected user
+    userForm.reset(); // Reset the form
+    fetchUsers();
+};
+
+// Function to submit user update
+const submitUserUpdate = () => {
+    const routeName = 'admin.users.update'; 
+
+    userForm.patch(route(routeName, { user: selectedUser.value.id }), { 
+        // Preserve scroll behavior
+        preserveScroll: true, 
+        
+        onSuccess: (page) => {
+            // Trigger the transition back to the user list AND re-fetch the updated list
+            backToUserList(); 
+
+            // Check for and display a flash message if provided by Laravel
+            if (page.props.flash && page.props.flash.message) {
+                console.log("Success message:", page.props.flash.message);
+                // You might want to display this message using a transient notification system in your UI.
+                // Example: store.dispatch('showNotification', { message: page.props.flash.message, type: 'success' });
+            }
+        },
+        onError: (errors) => {
+            console.error("User update errors:", errors);
+            // userForm.errors will automatically be populated by Inertia
+        },
+    });
+};
 </script>
 
 <template>
@@ -127,7 +237,17 @@ const submitVendor = () => {
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- Stats Cards with dynamic counts -->
-                <div
+                <transition
+                mode = "out-in"
+                enter-active-class="transition-opacity duration-300 ease-out"
+                enter-from-class="opacity 0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-opacity duration-200 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+                >
+                <div v-if="currentAdminView === 'dashboard'" key="dashboard-view">
+                    <div
                     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
                 >
                     <!-- Users Stats Card -->
@@ -318,45 +438,27 @@ const submitVendor = () => {
                         </h3>
                         <div class="space-y-4">
                             <!-- Users Management -->
-                            <Link
-                                href="/admin/users"
-                                class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200"
-                            >
-                                <div class="flex items-center">
-                                    <div
-                                        class="p-2 rounded-lg bg-cyan-500/20 group-hover:bg-cyan-500/30"
-                                    >
-                                        <svg
-                                            class="w-5 h-5 text-cyan-400"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-white font-medium">
-                                            Manage Users
-                                        </h4>
-                                        <p class="text-gray-400 text-sm">
-                                            View, edit, and manage user accounts
-                                        </p>
-                                    </div>
-                                </div>
-                                <svg
-                                    class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                            </Link>
+                            <button
+    @click="showUserManagement"
+    class="group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-200 w-full text-left"
+>
+    <div class="flex items-center">
+        <div class="p-2 rounded-lg bg-cyan-500/20 group-hover:bg-cyan-500/30">
+            <!-- SVG icon for Users -->
+            <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h4 class="text-white font-medium">Manage Users</h4>
+            <p class="text-gray-400 text-sm">View, edit, and manage user accounts</p>
+        </div>
+    </div>
+    <!-- Arrow SVG -->
+    <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+</button>
 
                             <!-- Artists Management -->
                             <Link
@@ -726,6 +828,219 @@ const submitVendor = () => {
                         </button>
                     </div>
                 </div>
+                </div>
+                <div v-else-if="currentAdminView === 'userList'" key="user-list-view">
+    <div
+        class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+    >
+        <!-- Header with Back Button and Search Input -->
+        <div class="flex items-center mb-6">
+            <button
+                @click="backToDashboard"
+                class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                aria-label="Back to Dashboard"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </button>
+            <input
+                v-model="searchTerm"
+                @input="fetchUsers"
+                type="text"
+                placeholder="SEARCH"
+                class="flex-1 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
+            />
+        </div>
+
+        <!-- User List Area -->
+        <div class="user-list-area max-h-[calc(100vh-250px)] overflow-y-auto pr-2"> <!-- Added max-height and overflow-y-auto for scrollability -->
+            <div v-if="loadingUsers" class="text-center py-8 text-gray-400">
+                <svg class="animate-spin h-8 w-8 text-cyan-400 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading users...
+            </div>
+
+            <div v-else-if="filteredUsers.length === 0" class="text-center py-8 text-gray-400">
+                No users found.
+            </div>
+
+            
+            <div v-else class="space-y-4">
+                <!-- User List Items -->
+                <button
+                    v-for="user in filteredUsers"
+                    :key="user.id"
+                    @click="editUser(user)"
+                    class="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 w-full text-left transition-colors duration-200"
+                >
+                    <div class="flex items-center">
+                        <div class="p-2 rounded-full bg-cyan-500/20">
+                            <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-white font-medium">
+                                {{ user.name }}
+                            </h4>
+                            <p class="text-gray-400 text-sm">
+                                {{ user.email }}
+                                <span v-if="user.is_admin" class="ml-2 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">Admin</span>
+                                <span v-if="user.is_dev" class="ml-2 px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full">Developer</span>
+                            </p>
+                        </div>
+                    </div>
+                    <svg
+                        class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- === USER EDIT FORM VIEW (NEW) === -->
+                    <div v-else-if="currentAdminView === 'userEdit'" key="user-edit-view">
+                        <div
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-6"
+                        >
+                            <!-- Header with Back Button and User's Name -->
+                            <div class="flex items-center mb-6">
+                                <button
+                                    @click="backToUserList"
+                                    class="text-gray-400 hover:text-white transition-colors duration-200 mr-4"
+                                    aria-label="Back to User List"
+                                >
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                </button>
+                                <h3 class="text-xl font-bold text-white capitalize">
+                                    {{ selectedUser ? selectedUser.name : 'User' }}
+                                </h3>
+                            </div>
+
+                            <!-- User Edit Form -->
+                            <form @submit.prevent="submitUserUpdate" class="space-y-4">
+                                <!-- Name Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Name</label>
+                                    <input
+                                        v-model="userForm.name"
+                                        type="text"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
+                                        required
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="userForm.errors.name" class="mt-1 text-sm text-red-400">{{ userForm.errors.name }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Email Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Email</label>
+                                    <input
+                                        v-model="userForm.email"
+                                        type="email"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
+                                        required
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="userForm.errors.email" class="mt-1 text-sm text-red-400">{{ userForm.errors.email }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Admin Status Checkbox -->
+                                <div class="flex items-center pt-2">
+                                    <input
+                                        type="checkbox"
+                                        id="is_admin"
+                                        v-model="userForm.is_admin"
+                                        class="form-checkbox h-5 w-5 text-cyan-400 bg-white/10 border-white/30 rounded focus:ring-cyan-400 focus:ring-offset-gray-900"
+                                    />
+                                    <label for="is_admin" class="ml-2 text-sm font-medium text-gray-200">Is Admin</label>
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="userForm.errors.is_admin" class="mt-1 text-sm text-red-400">{{ userForm.errors.is_admin }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Dev Status Checkbox -->
+                                <div class="flex items-center pt-2">
+                                    <input
+                                        type="checkbox"
+                                        id="is_dev"
+                                        v-model="userForm.is_dev"
+                                        class="form-checkbox h-5 w-5 text-cyan-400 bg-white/10 border-white/30 rounded focus:ring-cyan-400 focus:ring-offset-gray-900"
+                                    />
+                                    <label for="is_dev" class="ml-2 text-sm font-medium text-gray-200">Is Developer</label>
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="userForm.errors.is_dev" class="mt-1 text-sm text-red-400">{{ userForm.errors.is_dev }}</div>
+                                    </Transition>
+                                </div>
+
+                                <!-- Password Fields (Optional for password change) -->
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">New Password (leave blank to keep current)</label>
+                                    <input
+                                        v-model="userForm.password"
+                                        type="password"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
+                                        placeholder="Enter new password"
+                                    />
+                                    <Transition enter-active-class="duration-200 ease-out" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                                        <div v-if="userForm.errors.password" class="mt-1 text-sm text-red-400">{{ userForm.errors.password }}</div>
+                                    </Transition>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-2">Confirm New Password</label>
+                                    <input
+                                        v-model="userForm.password_confirmation"
+                                        type="password"
+                                        class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 transition-all duration-200"
+                                        placeholder="Confirm new password"
+                                    />
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        @click="backToUserList"
+                                        class="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-medium rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        :disabled="userForm.processing"
+                                        class="flex-1 py-3 px-4 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:hover:scale-100"
+                                    >
+                                        <Transition mode="out-in" enter-active-class="duration-150" leave-active-class="duration-150">
+                                            <span v-if="!userForm.processing" key="save">
+                                                Save
+                                            </span>
+                                            <span v-else key="saving" class="flex items-center justify-center">
+                                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Saving...
+                                            </span>
+                                        </Transition>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </transition>
             </div>
         </div>
 

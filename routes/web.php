@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\VendorController as AdminVendorController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Api\UserController; // Make sure this is imported!
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,17 +34,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Admin routes
+// Admin routes group (This is your existing group)
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard
+    // Dashboard (accessible as /admin/dashboard)
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Resource routes for full CRUD operations
+    Route::get('/users/api', [UserController::class, 'index'])->name('users.api');
+
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
+    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
     Route::resource('artists', AdminArtistController::class);
     Route::resource('stages', AdminStageController::class);
     Route::resource('vendors', AdminVendorController::class);
-
-    // Additional specific routes if needed
 });
+
 
 require __DIR__ . '/auth.php';
