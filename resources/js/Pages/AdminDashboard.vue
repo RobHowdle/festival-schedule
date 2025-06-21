@@ -4,6 +4,7 @@ import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
 import axios from 'axios';
 import { debounce } from 'lodash';
+import CustomSelect from '@/Components/CustomSelect.vue';
 
 const props = defineProps({
     users_count: Number,
@@ -374,6 +375,11 @@ const showStageManagement = () => {
     fetchStages();
 };
 
+const formatStageType = (type) => {
+    if (!type) return ''; // Handle null/undefined gracefully
+    return type.replace(/_/g, ' '); // Replace all underscores with spaces
+};
+
 const selectedStage = ref(null); // Stores the stage object being edited
 
 // Form for editing stage data. Distinct from stageForm (used for creation modal)
@@ -433,6 +439,13 @@ const backToStageList = () => {
     stageEditForm.reset();
     fetchStages();
 };
+
+const stageTypeOptions = ref([
+    { value: 'open_air', label: 'Open Air Stage' },
+    { value: 'tent', label: 'Tent Stage' },
+    { value: 'indoor', label: 'Indoor Stage' },
+    { value: 'other', label: 'Other' },
+]);
 </script>
 
 <template>
@@ -1761,7 +1774,7 @@ const backToStageList = () => {
                           <span
                             v-if="stage.type"
                             class="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full capitalize"
-                            >{{ stage.type }}</span
+                            >{{ formatStageType(stage.type) }}</span
                           >
                           <span
                             v-if="stage.capacity"
@@ -1937,35 +1950,14 @@ const backToStageList = () => {
                 </div>
 
                 <!-- Stage Type Field (Select Dropdown) -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-200 mb-2"
-                    >Stage Type</label
-                  >
-                  <select
-                    v-model="stageEditForm.type"
-                    class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
-                  >
-                    <option value="">Select type</option>
-                    <option value="open_air">Open Air Stage</option>
-                    <option value="tent">Tent Stage</option>
-                    <option value="indoor">Indoor Stage</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <Transition
-                    enter-active-class="duration-200 ease-out"
-                    enter-from-class="opacity-0 translate-y-1"
-                    enter-to-class="opacity-100 translate-y-0"
-                    leave-active-class="duration-150 ease-in"
-                    leave-from-class="opacity-100 translate-y-0"
-                    leave-to-class="opacity-0 translate-y-1"
-                  >
-                    <div
-                      v-if="stageEditForm.errors.type"
-                      class="mt-1 text-sm text-red-400"
-                    >
-                      {{ stageEditForm.errors.type }}
-                    </div>
-                  </Transition>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">Stage Type</label>
+                    <CustomSelect
+                        v-model="stageEditForm.type"
+                        :options="stageTypeOptions"
+                        placeholder="Select type"
+                        :error="stageEditForm.errors.type"
+                    />
                 </div>
 
                 <!-- Action Buttons -->
@@ -2037,64 +2029,42 @@ const backToStageList = () => {
       leave-to-class="opacity-0"
     >
       <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        @click.self="closeModal"
-      >
-        <!-- Background overlay with fade animation -->
-        <Transition
-          enter-active-class="duration-300 ease-out"
-          enter-from-class="opacity-0"
-          enter-to-class="opacity-100"
-          leave-active-class="duration-200 ease-in"
-          leave-from-class="opacity-100"
-          leave-to-class="opacity-0"
-        >
-          <div
+    v-if="showModal"
+    class="fixed inset-0 z-50 overflow-y-auto"
+    @click.self="closeModal"
+>
+    <!-- Background overlay (this is NOT the one to change, leave it alone) -->
+    <Transition
+        enter-active-class="duration-300 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="duration-200 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+    >
+        <div
             v-if="showModal"
             class="fixed inset-0 transition-opacity bg-black/75 backdrop-blur-sm"
             @click="closeModal"
-          ></div>
-        </Transition>
+        ></div>
+    </Transition>
 
-        <div
-          class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
-        >
-          <!-- Modal container with scale and fade animation -->
-          <Transition
-            enter-active-class="duration-300 ease-out"
-            enter-from-class="opacity-0 scale-95 translate-y-4"
-            enter-to-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="duration-200 ease-in"
-            leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-to-class="opacity-0 scale-95 translate-y-4"
-          >
+    <div
+        class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+        <!-- Modal container with scale and fade animation -->
+        <Transition enter-active-class="duration-300 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4" enter-to-class="opacity-100 scale-100 translate-y-0" leave-active-class="duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0" leave-to-class="opacity-0 scale-95 translate-y-4">
             <div
-              v-if="showModal"
-              class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl sm:max-w-lg"
+                v-if="showModal"
+                class="inline-block w-full max-w-md p-6 my-8 overflow-y-auto text-left align-middle transition-all transform bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl sm:max-w-lg max-h-[calc(100vh-100px)]"
             >
-              <!-- Modal header -->
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-white capitalize">
-                  Add New {{ modalType }}
-                </h3>
-                <button
-                  @click="closeModal"
-                  class="text-gray-400 hover:text-white transition-colors duration-200 hover:rotate-90 transform"
-                >
-                  <svg
-                    class="w-6 h-6 transition-transform duration-200"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
+                <!-- Modal header -->
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white capitalize">Add New {{ modalType }}</h3>
+                    <button @click="closeModal" class="text-gray-400 hover:text-white transition-colors duration-200 hover:rotate-90 transform">
+                        <!-- Close SVG -->
+                    </button>
+                </div>
 
               <!-- Artist Form -->
               <Transition
@@ -2422,16 +2392,12 @@ const backToStageList = () => {
                     <label class="block text-sm font-medium text-gray-200 mb-2"
                       >Stage Type</label
                     >
-                    <select
+                    <CustomSelect
                       v-model="stageForm.type"
-                      class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200"
-                    >
-                      <option value="">Select type</option>
-                      <option value="main">Open Air Stage</option>
-                      <option value="second">Tent Stage</option>
-                      <option value="acoustic">Indoor Stage</option>
-                      <option value="other">Other</option>
-                    </select>
+                      :options="stageTypeOptions"
+                      placeholder="Select type"
+                      :error="stageForm.errors.type"
+                    />
                   </div>
 
                   <div class="flex gap-4 pt-4">
